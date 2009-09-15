@@ -148,10 +148,10 @@ qx.Class.define("smart.Smart", {
 	    */
 
 	    //
-	    // This gets called the view is changed or re-applied. It ensures that the __rowArr slot
-	    // used by the Simple superclass never goes stale: that it always points to the right
-	    // view. It also saves the selection for the current view and restores it for the new
-	    // view, which causes the selection to be properly maintained across the view
+	    // This gets called when the view is changed or re-applied. It ensures that the __rowArr
+	    // slot used by the Simple superclass never goes stale: that it always points to the
+	    // right view. It also saves the selection for the current view and restores it for the
+	    // new view, which causes the selection to be properly maintained across the view
 	    // change. (This only applies when we're running in indexed selection mode; otherwise,
 	    // the selection is not modified.)
 	    //
@@ -212,10 +212,10 @@ qx.Class.define("smart.Smart", {
 
 	    /**
 	     * 
-	     * Adds a new view to the model. A view is subset of the model filtered against a set of
-	     * criteria. These criteria are expressed as filters -- functions that accept a row data
-	     * array and return true (filter the row out) or false (allow the row). Multiple filter
-	     * functions can be combined under <code>and</code> or <code>or</code> operators.
+	     * Adds a new view to the model. A view is a subset of the model filtered against a set
+	     * of criteria. These criteria are expressed as filters -- functions that accept a row
+	     * data array and return true (allow the row) or false (filter the row out). Multiple
+	     * filter functions can be combined under <code>and</code> or <code>or</code> operators.
 	     *
 	     * @param filters {Array} Array of filter functions. If you have only one function, you
 	     * can pass it without wrapping it in an array.
@@ -226,7 +226,7 @@ qx.Class.define("smart.Smart", {
 	     * @return {Integer} the view number (always one greater than the last view number)
 	     *
 	     * @note Each filter function must accept a row data array and return true if the row
-	     * should hidden for the view or false if it should be visible.
+	     * should be visible in the view or false if it should not.
 	     */
 	    addView: function(filters, obj, conjunction) {
 		this.__backingstore.push([]);
