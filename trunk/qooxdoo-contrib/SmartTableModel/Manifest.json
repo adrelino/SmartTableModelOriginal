@@ -1,0 +1,33 @@
+{
+  "info" : 
+  {
+    "name" : "smart",
+
+    "summary" : "smart table model",
+    "description" : "smart table model",
+    
+    "homepage" : "http://contrib.qooxdoo.org/smart",
+
+    "license" : "LGPL/EPL",
+    "authors" : 
+    [
+      {
+        "name" : "Dave Baggett (dmbaggett)",
+        "email" : "dave@baggett.org"
+      }
+    ],
+
+    "version" : "trunk",
+    "qooxdoo-versions": ["0.8.3-pre"]
+  },
+  
+  "provides" : 
+  {
+    "namespace"   : "smart",
+    "encoding"    : "utf-8",
+    "class"       : "source/class",
+    "resource"    : "source/resource",
+    "translation" : "source/translation",
+    "type"        : "application"
+  }
+}
