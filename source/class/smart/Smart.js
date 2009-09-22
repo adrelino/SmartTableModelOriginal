@@ -304,7 +304,7 @@ qx.Class.define("smart.Smart", {
 
 		    this.__filters[view] = wrappedfilters;
 		    if (conjunction !== 'and' && conjunction !== 'or')
-			conjunection = 'and';
+			conjunction = 'and';
 		    this.__conjunctions[view] = conjunction;
 		    this.__evalFilters(view);
 
