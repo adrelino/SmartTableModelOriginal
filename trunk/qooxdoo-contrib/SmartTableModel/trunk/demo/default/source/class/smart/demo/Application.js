@@ -98,7 +98,7 @@ qx.Class.define("smart.demo.Application", {
 		// Define table model properties
 		//
 
-		// Craete the table model
+		// Create the table model
 		var tm = new smart.Smart();
 
 		// Set the columns
