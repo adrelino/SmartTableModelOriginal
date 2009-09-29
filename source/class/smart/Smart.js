@@ -1268,6 +1268,8 @@ qx.Class.define("smart.Smart", {
 	     * that if column values are references, they will be shallow copied.
 	     */
 	    setData: function(rowArr, copy) {
+		if (!rowArr) // complain if rowArr is not an array.
+		    alert('smartTableModel.setData(): undefined or null data array');
 		if (copy == undefined)
 		    copy = true;
 
