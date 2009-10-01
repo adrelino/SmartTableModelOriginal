@@ -1268,8 +1268,9 @@ qx.Class.define("smart.Smart", {
 	     * that if column values are references, they will be shallow copied.
 	     */
 	    setData: function(rowArr, copy) {
-		if (!rowArr) // complain if rowArr is not an array.
-		    alert('smartTableModel.setData(): undefined or null data array');
+	        if (qx.core.Variant.isSet("qx.debug", "on")) {
+	            this.assertArray(rowArr[0], "SmartTableModel.setData(): parameter must be an array of arrays.");
+                }
 		if (copy == undefined)
 		    copy = true;
 
@@ -1338,6 +1339,9 @@ qx.Class.define("smart.Smart", {
 	     * 100 rows each time.
 	     */
 	    addRows: function(rowArr, copy, fireEvent) {
+	        if (qx.core.Variant.isSet("qx.debug", "on")) {
+	            this.assertArray(rowArr[0], "SmartTableModel.setData(): parameter must be an array of arrays.");
+                }
 		if (copy == undefined)
 		    copy = true;
 		if (fireEvent == undefined)
