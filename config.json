@@ -31,10 +31,8 @@
   {
     "APPLICATION"  : "smart",
     "APPLICATION_MAIN_CLASS" : "${APPLICATION}.demo.Demo",
-    "QOOXDOO_PATH" : "../../qooxdoo/0.8.3",
-    //"QXTHEME"      : "smart.theme.modern.Theme",
+    "QOOXDOO_PATH" : "../../../frontend",
     "QXTHEME"      : "qx.theme.Modern",
-    "API_EXCLUDE"  : ["qx.legacy.*", "qx.test.*", "smart.demo.*"],
     "LOCALES"      : [ "en" ],
     "CACHE"        : "${TMPDIR}/cache",
     "ROOT"         : "."
