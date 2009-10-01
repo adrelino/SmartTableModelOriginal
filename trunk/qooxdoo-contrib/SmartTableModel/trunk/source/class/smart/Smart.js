@@ -555,7 +555,7 @@ qx.Class.define("smart.Smart", {
 		var rows = this.getRowCount(view);
 		if (rowIndex < 0 || rowIndex >= rows)
 		    throw new Error("rowIndex out of bounds: " + rowIndex + " (0.." + (rows-1) + ")");
-		return copy ? this.getRowArray(view)[rowIndex].slice() : this.getRowArray(view)[rowIndex];
+		return copy ? this.getRowArray(view)[rowIndex].slice(0) : this.getRowArray(view)[rowIndex];
 	    },
 
 	    /**
@@ -1235,8 +1235,9 @@ qx.Class.define("smart.Smart", {
 	     * views will be automatically updated to include or exclude the added rows based on
 	     * their associated filters.
 	     *
-	     * @param mapArr {Map[]} An array containing a map for each row. Each
-	     *        row-map contains the column IDs as key and the cell values as value.
+	     * @param rowArr {var[][]} An array containing an array for each row. Each
+	     *          row-array contains the values in that row in the order of the columns
+	     *          in this model.
 	     * @param startIndex {Integer ? null} The index where to insert the new rows. If null,
 	     *        the rows are appended to the end.
 	     * @note This is a computationally expensive operation.
@@ -1281,10 +1282,10 @@ qx.Class.define("smart.Smart", {
 		if (copy) {
 		    A = [];
 		    for (var i = 0; i < rowArr.length; i++)
-			A.push(rowArr[i].slice());
+			A.push(rowArr[i].slice(0));
 		}
 		else
-		    A = rowArr.slice();
+		    A = rowArr.slice(0);
 
 		//
 		// If we're in indexed selection mode, explicitly clear the selection since we're
@@ -1358,7 +1359,7 @@ qx.Class.define("smart.Smart", {
 		var A = copy ? [] : rowArr;
 		if (copy)
 		    for (var i = 0; i < rowArr.length; i++)
-			A.push(rowArr[i].slice());
+			A.push(rowArr[i].slice(0));
 
 		// Assign a unique ID to each row
 		this.__assignRowIDs(A);
