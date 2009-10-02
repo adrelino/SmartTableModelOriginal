@@ -105,7 +105,9 @@ qx.Class.define("smart.searchAsYouType.Application",
           }, this);
 
           this.__searchTimer = new qx.event.Timer(this.__searchTimeout);
-          this.__searchTimer.addListener('interval', function(e) {
+          this.__searchTimer.addListener('interval', function(e) { 
+          // TBD: you might want to make sure that this function
+          //      has finished before it is started again.
               this.debug('timer fired');
               this.__searchTimer.stop();
               tm.updateView(this.views["SearchAsYouType"].id);
