@@ -108,10 +108,17 @@ qx.Class.define("smart.searchAsYouType.Application",
           this.__searchTimer.addListener('interval', function(e) { 
           // TBD: you might want to make sure that this function
           //      has finished before it is started again.
-              this.debug('timer fired');
               this.__searchTimer.stop();
-              tm.updateView(this.views["SearchAsYouType"].id);
-              tm.setView(this.views["SearchAsYouType"].id);
+              if(this.search_field.getValue() == ""){
+                  this.debug("Empty search field, showing all rows ...");
+                  tableModel.updateView(this.views["All"].id); // needed?
+                  tableModel.setView(this.views["All"].id);
+              } 
+              else {
+                  this.debug("Showing rows matching search field ...");
+                  tableModel.updateView(this.views["SearchAsYouType"].id);
+                  tableModel.setView(this.views["SearchAsYouType"].id);
+              }
           }, this);
           
           // Document is the application root
