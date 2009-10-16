@@ -35,7 +35,9 @@
     "API_EXCLUDE"  : ["qx.legacy.*","qx.test.*"],
     "LOCALES"      : [ "en" ],
     "CACHE"        : "${TMPDIR}/cache",
-    "ROOT"         : "."
+    "ROOT"         : ".",
+    /* disable "privates" optimization in build version due to current issues */
+    "OPTIMIZE"     : ["variables", "basecalls", "strings"]
   },
 
   "jobs" :
