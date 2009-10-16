@@ -692,7 +692,8 @@ qx.Class.define("smart.Smart", {
 		    var span;
 		    var A = this.getRowArray(view);
 		    for (i = 0; i < len; i += span) {
-			var row = base = rowsToRemove[i];
+		        var base = rowsToRemove[i];
+			var row = base;
 			span = 1;
 			for (var j = 1; i + j < len; j++)
 			    if (rowsToRemove[i + j] == row - j)	// row indices *decrease* as we step j

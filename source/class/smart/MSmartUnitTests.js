@@ -65,7 +65,7 @@ qx.Mixin.define("smart.MSmartUnitTests", {
 		// Establish columns
 		var columns = { "number": 0, "string": 1, "object": 2, "function": 3, "random": 4 };
 		model.setColumns(function () { 
-			C = []; 
+			var C = []; 
 			for (name in columns) {
 			    var index = columns[name];
 			    C[index] = name;
@@ -686,7 +686,7 @@ qx.Mixin.define("smart.MSmartUnitTests", {
 		var all = [];
 		var added = 0;
 		for (i = 0; i < N; i++) {
-		    A = [];
+		    var A = [];
 		    var size = (Math.random() & 7) + 1;
 		    for (var j = 0; j < size; j++) {
 			var x = (Math.random() * ~0) ^ 0;
