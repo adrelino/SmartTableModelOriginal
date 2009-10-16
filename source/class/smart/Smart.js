@@ -1269,16 +1269,22 @@ qx.Class.define("smart.Smart", {
 	     * that if column values are references, they will be shallow copied.
 	     */
 	    setData: function(rowArr, copy) {
-	        if (qx.core.Variant.isSet("qx.debug", "on")) {
-	            this.assertArray(rowArr[0], "SmartTableModel.setData(): parameter must be an array of arrays.");
-                }
+//	        if (qx.core.Variant.isSet("qx.debug", "on")) {
+//	            this.assertArray(rowArr[0], "SmartTableModel.setData(): parameter must be an array of arrays.");
+//                }
 		if (copy == undefined)
 		    copy = true;
+		    
+		if (rowArr == null || rowArr.length==0) {
+		    this.clearAllRows();
+    	  	    this.__clearSelection();
+		    return;
+  	        }    
 
 		//
 		// Set the view zero array. If the copy parameter is true, make a copy of each row.
 		//
-		var A;
+		var A = [];
 		if (copy) {
 		    A = [];
 		    for (var i = 0; i < rowArr.length; i++)
