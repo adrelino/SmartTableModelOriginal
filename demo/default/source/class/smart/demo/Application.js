@@ -102,7 +102,7 @@ qx.Class.define("smart.demo.Application", {
 		var tm = new smart.Smart();
 
 		// Set the columns
-		var column_names = [];
+		var key, column_names = [];
 		for (key in this.columns)
 		    column_names[this.columns[key]] = key;
 		tm.setColumns(column_names);
