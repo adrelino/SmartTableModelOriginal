@@ -1768,7 +1768,7 @@ qx.Class.define("smart.Smart", {
 		    ascending = this.__sortAscending;
 
 		var comparator;
-		var sortMethods = this.__sortMethods[columnIndex];
+		var sortMethods = this.getSortMethods(columnIndex);
 		if (sortMethods)
 		    comparator = (ascending ? sortMethods.ascending : sortMethods.descending);
 		else if (this.getCaseSensitiveSorting())
