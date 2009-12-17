@@ -1830,7 +1830,7 @@ qx.Class.define("smart.Smart", {
 		this.__restoreSelection();
 
 		// Notify listeners
-		this.fireEvent(qx.ui.table.ITableModel.EVENT_TYPE_META_DATA_CHANGED);
+		this.fireEvent('metaDataChanged');
 	    },
 
 	    // clearSorting requires no override (and it's never necessary for a Smart model)
@@ -1861,7 +1861,7 @@ qx.Class.define("smart.Smart", {
 	    // Fire a DATA_CHANGED event notifying listeners that the entire table has changed.
 	    //
 	    __notifyDataChanged: function(view) {
-		if (this.hasListener(qx.ui.table.ITableModel.EVENT_TYPE_DATA_CHANGED)) {
+		if (this.hasListener('dataChanged')) {
 		    if (view == undefined) view = this.getView();
 		    var data = { 
 			firstRow: 0,
@@ -1871,7 +1871,7 @@ qx.Class.define("smart.Smart", {
 			//removeStart:
 			//removeCount:
 		    };
-		    this.fireDataEvent(qx.ui.table.ITableModel.EVENT_TYPE_DATA_CHANGED, data);
+		    this.fireDataEvent('dataChanged', data);
 		}
 	    },
 
