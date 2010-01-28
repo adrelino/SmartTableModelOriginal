@@ -1116,10 +1116,17 @@ qx.Class.define("smart.Smart", {
 		    var prev_row = this.__getRowIndex(v, R);
 		    //this.__debug("__propagateRowChangeToAllViews: (view " + v + ") prev_row = " + prev_row);
 
-		    var was_filtered = (v && (this.__getRowIndex(v, R) == undefined));
+		    var was_filtered, now_filtered;
 
-		    // Is it filtered out of this view now?
-		    var now_filtered = !(v && this.__testAllFilters(v, R, /*single:*/ true));
+		    if (v == 0) {
+			// View zero is never filtered, by definintion
+			was_filtered = false;
+			now_filtered = false;
+		    }
+		    else {
+			was_filtered = (this.__getRowIndex(v, R) == undefined);
+			now_filtered = this.__row_is_filtered(v, R);
+		    }
 
 		    //this.__debug("__propagateRowChangeToAllViews: (view " + v + ") was_filtered = " + was_filtered + ", now_filtered = " + now_filtered);
 
@@ -1554,6 +1561,11 @@ qx.Class.define("smart.Smart", {
 			_R.push(Rr);
 		}
 		return _R;
+	    },
+
+	    // More intuitively named alias for the above (single-row case):
+	    __row_is_filtered: function (view, R) {
+		return !this.__testAllFilters(view, R, /*single:*/ true);
 	    },
 
 	    //
