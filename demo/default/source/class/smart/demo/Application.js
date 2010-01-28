@@ -95,6 +95,14 @@ qx.Class.define("smart.demo.Application", {
 		}
 
 		//
+		// Test code for bug reported by Fritz Zaucker
+		// 
+		if (false) {
+		    this.fz_test();
+		    return;
+		}
+
+		//
 		// Define table model properties
 		//
 
@@ -299,6 +307,49 @@ qx.Class.define("smart.demo.Application", {
 		// row from a view removes it from *all* views.
 		//
 		tm.removeRows(row, 1);
+	    },
+
+	    fz_test: function () {
+		var tableModelSmart = new smart.Smart();
+		tableModelSmart.addView(function (rowdata) { return true; }, this);
+		tableModelSmart.setColumns([ "Location", "Team" ]);
+
+		var tableModelSimple = new qx.ui.table.model.Simple();
+		tableModelSimple.setColumns([ "Location", "Team" ]);
+
+		var tableSmart  = new qx.ui.table.Table(tableModelSmart);
+		var tableSimple = new qx.ui.table.Table(tableModelSimple);
+
+		// Create a button
+		var button1 = new qx.ui.form.Button("Update");
+
+		// Document is the application root
+		var doc = this.getRoot();
+
+		// Add button and table to document at fixed coordinates
+		doc.add(button1, {left: 20, top: 20});
+		doc.add(new qx.ui.basic.Label('Simple'), {left: 20, top: 50});
+		doc.add(tableSimple, {left:  20, top: 70});
+		doc.add(new qx.ui.basic.Label('Smart'), {left: 250, top: 50});
+		doc.add(tableSmart,  {left: 250, top: 70});
+
+		var data = [ ['loc1', 'team1'],
+			     ['loc2', 'team2'],
+			     ['loc3', 'team3']
+			   ];
+		tableModelSimple.setData(data);
+		tableModelSmart.setData(data);
+
+		/* Update the data  */
+		button1.addListener("execute", function(e) {
+					var lenSmart;
+					lenSmart = tableModelSmart.getRowCount();
+					this.debug('lenSmart='+lenSmart);
+					tableModelSimple.setValue(0,1,'loc2a');
+					tableModelSmart.setValue(0,1,'loc2a');
+					lenSmart = tableModelSmart.getRowCount();
+					this.debug('lenSmart='+lenSmart);
+				    });
 	    }
 	}
     });
