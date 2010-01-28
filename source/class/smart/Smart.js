@@ -414,6 +414,19 @@ qx.Class.define("smart.Smart", {
 		this.__selectionModel = selectionModel;
 		this.__selection_stack = [];
 		this.__selection_stack_depth = 0;
+		this.__suppress_indexed_selection = false;
+	    },
+
+	    /**
+	     * For models with indexed selection enabled, this method tells the model to pause or resume
+	     * preserving the selection using the index. (One reason you might want to do this is to avoid
+	     * preserving the selection when items are being deleted from the model.)
+	     * 
+	     * @param suspend {Boolean} whether to suspend (<code>true</code>) or resume (<code>true</code>)
+	     * selection preservation using the index.
+	     */
+	    suspendIndexedSelection: function(suspend) {
+		this.__suppress_indexed_selection = suspend;
 	    },
 
 	    //
@@ -449,13 +462,15 @@ qx.Class.define("smart.Smart", {
 
 		var sm = this.__selectionModel;
 		sm.setBatchMode(true);	// queue events for selection changes
-		this.__clearSelection();
+		if (!this.__suppress_indexed_selection)
+		    this.__clearSelection();
 		var selected = this.__selection_stack[--this.__selection_stack_depth];
-		for (var i = 0; i < selected.length; i++) {
-		    var row = this.locate(this.__selectionIndex, selected[i], view);
-		    if (row != undefined)
-			sm.addSelectionInterval(row, row);
-		}
+		if (!this.__suppress_indexed_selection)
+		    for (var i = 0; i < selected.length; i++) {
+			var row = this.locate(this.__selectionIndex, selected[i], view);
+			if (row != undefined)
+			    sm.addSelectionInterval(row, row);
+		    }
 		sm.setBatchMode(false);	// send events for selection changes
 	    },
 
@@ -519,13 +534,19 @@ qx.Class.define("smart.Smart", {
 	    // Internal use only:
 	    __getAssoc: function (view) {
 		if (view == undefined) view = this.getView();
-		return this.__assoc[view];
+		if (view < this.__views)
+		    return this.__assoc[view];
+		else
+		    return undefined;
 	    },
 
 	    // Internal use only:
 	    __getFilters: function(view) {
 		if (view == undefined) view = this.getView();
-		return this.__filters[view];
+		if (view < this.__views)
+		    return this.__filters[view];
+		else
+		    return undefined;
 	    },
 
 	    // Internal use only:
@@ -1474,6 +1495,15 @@ qx.Class.define("smart.Smart", {
 		}
 	    },
 
+	    /**
+	     * Force the table to redraw itself.
+	     *
+	     * @return {void}
+	     */
+	    forceRedraw: function() {
+		this.__notifyDataChanged();
+	    },
+
 	    //
 	    // TBD: Map versions of row update methods
 	    //
@@ -1832,7 +1862,6 @@ qx.Class.define("smart.Smart", {
 		    // Sort all views using the comparator
 		    for (var v = 0; v < this.__views; v++)
 			this.getRowArray(v).sort(comparator);
-
 		}
 
 		// Rebuild all association maps from scratch
