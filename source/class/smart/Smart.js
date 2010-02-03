@@ -480,7 +480,7 @@ qx.Class.define("smart.Smart", {
 	    __clearSelection: function() {
 		var sm = this.__selectionModel;
 		if (sm)
-		    sm.clearSelection();
+		    sm.resetSelection();
 	    },
 
 	    //
@@ -1977,14 +1977,12 @@ qx.Class.define("smart.Smart", {
 	},
 
 	destruct : function() {
-	    this._disposeFields(
-				"__filters",
-				"__views",
-				"__conjunctions",
-				"__backingstore",
-				"__assoc",
-				"__indices",
-				"__selection_stack"
-				);
+	    this.__filters = null;
+	    this.__views = null;
+	    this.__conjunctions = null;
+	    this.__backingstore = null;
+	    this.__assoc = null;
+	    this.__indices = null;
+	    this.__selection_stack = null;
 	}
     });
