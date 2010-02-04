@@ -57,7 +57,7 @@ qx.Class.define("smart.Smart", {
 	    this.base(arguments);
 
 	    // debugging
-	    this.___debug = false;
+	    this.___debug = true;
 
 	    /*
 	     * We maintain multiple backing store copies, or "views" of the array. Each can be
@@ -1364,6 +1364,9 @@ qx.Class.define("smart.Smart", {
 	     * is false, then the model will use the references in <code>rowArr</code> directly,
 	     * meaning that modifications to the model will modify the data you pass in here.
 	     *
+	     * @param fireEvent {Boolean ? true} if true, a dataChanged event will be fired after
+	     * the rows are added
+	     * 
 	     * @return {void}
 	     *
 	     * @note Row data is not deep-copied even when <code>copy</code> is true, in the sense
@@ -1425,10 +1428,13 @@ qx.Class.define("smart.Smart", {
 	     * @param howMany {Integer ? <em>remainder of array</em>} the number of rows to remove.
 	     * @param view {Integer ?} Which model view this operation should apply to. If this
 	     * parameter is omitted, it defaults to the value of the {@link #view} property.
+	     * @param fireEvent {Boolean ? true} if true (the default), a dataChanged event will be 
+	     * fired after the rows are removed.
 	     * @return {void}
 	     */
-	    removeRows: function(startIndex, howMany, view) {
+	    removeRows: function(startIndex, howMany, view, fireEvent) {
 		if (view == undefined) view = this.getView();
+		if (fireEvent == undefined) fireEvent = true;
 
 		var A = this.getRowArray(view);
 
@@ -1455,7 +1461,7 @@ qx.Class.define("smart.Smart", {
 		    rows.push(A[startIndex + i]);
 
 		// Remove the rows (will save and restore the indexed selection as well)
-		this.removeReferencedRows(rows, view);
+		this.removeReferencedRows(rows, fireEvent);
 	    },
 
 	    /**
@@ -1464,9 +1470,13 @@ qx.Class.define("smart.Smart", {
 	     * a view number, because references apply to all views.
 	     *
 	     * @param rows {Array} the list of references to rows to be deleted.
+	     * @param fireEvent {Boolean ? true} if true (the default), a dataChanged event will be 
+	     * fired after the rows are removed.
 	     * @return {void}
 	     */
-	    removeReferencedRows: function(rows) {
+	    removeReferencedRows: function(rows, fireEvent) {
+		if (fireEvent == undefined) fireEvent = true;
+
 		//
 		// Delete rows from all views. Removing rows can't change sorting or filtering,
 		// so this is easy.
@@ -1478,6 +1488,9 @@ qx.Class.define("smart.Smart", {
 		for (var v = 0; v < this.__views; v++)
 		    this.__removeRows(v, rows);
 		this.__restoreSelection();
+
+		if (fireEvent)
+		    this.__notifyDataChanged();
 	    },
 
 	    /**
