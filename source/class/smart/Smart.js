@@ -57,7 +57,7 @@ qx.Class.define("smart.Smart", {
 	    this.base(arguments);
 
 	    // debugging
-	    this.___debug = true;
+	    this.___debug = false;
 
 	    /*
 	     * We maintain multiple backing store copies, or "views" of the array. Each can be
@@ -517,10 +517,12 @@ qx.Class.define("smart.Smart", {
 		// re-apply the view after we've changed it -- otherwise this.__rowArr will be
 		// stale.
 		//
-		if (this.__rowArr == this.getRowArray())
+		if (view == this.getView())
 		    reapply = true;
 
 		this.__backingstore[view] = A;
+
+		//this.__debug("__setRowArray: view " + view + ", getView() = " + this.getView() + ", A.length = " + this.__backingstore[view].length);
 
 		if (reapply) {
 		    //
@@ -574,6 +576,7 @@ qx.Class.define("smart.Smart", {
 		if (view == undefined) view = this.getView();
 		if (copy == undefined) copy = true;
 		var rows = this.getRowCount(view);
+		//this.__debug("there are " + rows + " rows in view " + view + ", rowIndex = " + rowIndex);
 		if (rowIndex < 0 || rowIndex >= rows)
 		    throw new Error("rowIndex out of bounds: " + rowIndex + " (0.." + (rows-1) + ")");
 		return copy ? this.getRowArray(view)[rowIndex].slice(0) : this.getRowArray(view)[rowIndex];
@@ -605,6 +608,7 @@ qx.Class.define("smart.Smart", {
 	     */
 	    getRowCount: function(view) {
 		if (view == undefined) view = this.getView();
+		//this.__debug("returning row count for view " + view + ": " + this.getRowArray(view).length);
 		return this.getRowArray(view).length;
 	    },
 
@@ -1453,8 +1457,6 @@ qx.Class.define("smart.Smart", {
 		if (howMany < 0 || startIndex + howMany - 1 >= A.length)
 		    throw new Error("removeRows: howMany out of bounds: " + howMany + " (0.." + (A.length - startIndex) + ")");
 
-		//this.__debug("removeRows: startIndex = " + startIndex + ", howMany = " + howMany);
-
 		// Collect references to rows to be deleted.
 		var rows = [];
 		for (var i = 0; i < howMany; i++)
@@ -1475,6 +1477,8 @@ qx.Class.define("smart.Smart", {
 	     * @return {void}
 	     */
 	    removeReferencedRows: function(rows, fireEvent) {
+		//this.__debug("removeReferencedRows: " + rows.length + " rows to remove");
+
 		if (fireEvent == undefined) fireEvent = true;
 
 		//
@@ -1488,9 +1492,9 @@ qx.Class.define("smart.Smart", {
 		for (var v = 0; v < this.__views; v++)
 		    this.__removeRows(v, rows);
 		this.__restoreSelection();
-
 		if (fireEvent)
 		    this.__notifyDataChanged();
+
 	    },
 
 	    /**
