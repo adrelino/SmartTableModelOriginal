@@ -101,7 +101,8 @@ qx.Class.define("smart.demo.Application", {
 		// 
 		if (false) {
 		    //this.fz_test();
-		    this.fz_test_2();
+		    //this.fz_test_2();
+		    this.fz_test_3();
 		    return;
 		}
 
@@ -406,6 +407,78 @@ qx.Class.define("smart.demo.Application", {
 					this.debug('lenSmart='+lenSmart);
 					tableModelSimple.removeRows(1,1);
 					tableModelSmart.removeRows(1,1,0);
+					lenSmart = tableModelSmart.getRowCount();
+					this.debug('lenSmart='+lenSmart);
+				    });
+	    },
+
+	    fz_test_3: function () {
+		var tableModelSmart = new smart.Smart();
+		tableModelSmart.setColumns([ "Location", "Team" ]);
+
+		var tableModelSimple = new qx.ui.table.model.Simple();
+		tableModelSimple.setColumns([ "Location", "Team" ]);
+
+		var tableSmart  = new qx.ui.table.Table(tableModelSmart);
+		var tableSimple = new qx.ui.table.Table(tableModelSimple);
+
+		tableModelSmart.addView(
+		    function (rowdata) {
+			var loc = rowdata[0];
+			this.debug('loc='+loc);
+			var ret = (loc == 'loc1' || loc == 'loc2');
+			this.debug('ret='+ret);
+			return ret;
+		    },
+		    this, null);
+
+
+		// Create buttons
+		var button1 = new qx.ui.form.Button("Update");
+		var button2 = new qx.ui.form.Button("Delete");
+
+		// Document is the application root
+		var doc = this.getRoot();
+
+		// Add button and table to document at fixed coordinates
+		doc.add(button1, {left: 20, top: 20});
+		doc.add(button2, {left: 100, top: 20});
+		doc.add(new qx.ui.basic.Label('Simple'), {left: 20, top: 50});
+		doc.add(tableSimple, {left:  20, top: 70});
+		doc.add(new qx.ui.basic.Label('Smart'), {left: 250, top: 50});
+		doc.add(tableSmart,  {left: 250, top: 70});
+
+		var data = [ ['loc1', 'team1'],
+			     ['loc2', 'team2'],
+			     ['loc3', 'team3']
+			   ];
+		tableSmart.getSelectionModel().setSelectionMode(qx.ui.table.selection.Model.MULTIPLE_INTERVAL_SELECTION);
+		tableModelSimple.setData(data);
+		tableModelSmart.setData(data);
+		tableModelSmart.setView(1);
+		tableModelSmart.updateView(1);
+		tableModelSmart.addIndex(0);
+		tableModelSmart.indexedSelection(0, tableSmart.getSelectionModel());
+
+		/* Update the data  */
+		button1.addListener("execute", function(e) {
+					var lenSmart;
+					lenSmart = tableModelSmart.getRowCount();
+					this.debug('lenSmart='+lenSmart);
+					tableModelSimple.setValue(0,1,'loc2a');
+					tableModelSmart.setValue(0,1,'loc2a');
+					lenSmart = tableModelSmart.getRowCount();
+					this.debug('lenSmart='+lenSmart);
+				    });
+
+		/* Delete a row  */
+		button2.addListener("execute", function(e) {
+					var lenSmart;
+					lenSmart = tableModelSmart.getRowCount();
+					//tableSmart.getSelectionModel().resetSelection();
+					this.debug('lenSmart='+lenSmart);
+					tableModelSimple.removeRows(1,1);
+					tableModelSmart.removeRows(1,1,1);
 					lenSmart = tableModelSmart.getRowCount();
 					this.debug('lenSmart='+lenSmart);
 				    });
