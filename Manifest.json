@@ -4,7 +4,7 @@
     "name" : "SmartTableModel",
 
     "summary" : "SmartTableModel Contribution",
-    "description" : "This is a skeleton for a qooxdoo contribution.",
+    "description" : "Drop-in replacement for Simple table model with filtering and better performance.",
     
     "homepage" : "http://contrib.qooxdoo.org/project/SmartTableModel",
 
@@ -18,7 +18,7 @@
     ],
 
     "version" : "trunk",
-    "qooxdoo-versions": ["0.8.3"]
+    "qooxdoo-versions": ["0.8.3", "1.0.0", "1.0.1"]
   },
   
   "provides" : 
@@ -31,4 +31,3 @@
     "type"        : "contribution"
   }
 }
-
