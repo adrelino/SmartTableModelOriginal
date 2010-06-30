@@ -754,6 +754,10 @@ qx.Class.define("smart.TableModel",
       }
       
       this.__alternate_backingstore[view] = (store || null);
+      if (this.__alternate_backingstore[view])
+      {
+        this.__alternate_backingstore[view].__name = "Alternate backing store";
+      }
       return this.__alternate_backingstore[view];
     },
 
@@ -873,6 +877,13 @@ qx.Class.define("smart.TableModel",
       // it; otherwise return (optionally, a copy) of the primary backing
       // store.
       var rowArray = this.getRowArray(view);
+
+      if (rowArray[rowIndex] === undefined)
+      {
+        this.debug("No entry in " + rowArray.__name + " for row " + rowIndex);
+        return null;
+      }
+      
       return (copy
               ? rowArray[rowIndex].slice(0)
               : rowArray[rowIndex]);
@@ -1995,6 +2006,7 @@ qx.Class.define("smart.TableModel",
         for (var v = 0; v < this.__views.length; v++)
         {
           this.__backingstore[v] = [];
+          this.__backingstore[v].__name = "Primary backing store";
         }
         this.__updateAssociationMaps();
         this.__notifyDataChanged();
