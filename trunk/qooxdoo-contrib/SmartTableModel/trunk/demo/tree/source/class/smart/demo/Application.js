@@ -40,8 +40,9 @@ qx.Class.define("smart.demo.Application",
       "Sender"    : 1,
       "Date"      : 2,
       "MessageId" : 3,
-      "Read?"     : 4,
-      "Extra"     : 5
+      "InReplyTo" : 4,
+      "Read?"     : 5,
+      "Extra"     : 6
     },
 
     // Define our views. These are subsets of the table rows defined
@@ -86,14 +87,14 @@ qx.Class.define("smart.demo.Application",
           var yesterday = today - msDay;
 
           // Get (or create) a map of used dates (unique to the day).
-          var uniqueDates = dm.getUserData("GroupByDate");
+          var uniqueDates = dm.getUserData("GroupByDate_Date");
 
           // If we hadn't previously created it...
           if (! uniqueDates)
           {
             // ... then create it now.
             uniqueDates = {};
-            dm.setUserData("GroupByDate", uniqueDates);
+            dm.setUserData("GroupByDate_Date", uniqueDates);
           }
 
           // We'll be adding header rows: one for each unique day in the new
@@ -116,7 +117,7 @@ qx.Class.define("smart.demo.Application",
             if (uniqueDates[dayOfDate] === undefined)
             {
               // Nope. Add a header row
-              var headerRow = [ "", "", "", "", "", { header : true } ];
+              var headerRow = [ "", "", "", "", "", "", { header : true } ];
               
               if (dayOfDate == today)
               {
@@ -183,6 +184,58 @@ qx.Class.define("smart.demo.Application",
           
           // The two dates are the same (and neither is a header)
           return 0;
+        },
+        
+        postInsertRows : function(rows)
+        {
+          var node;
+          var nodeArr;
+
+          // (Re-)Create the node array for this view
+          nodeArr = rows.nodeArr = [];
+
+          // Initially there's no parent
+          var parent = null;
+
+          // For each row of data...
+          for (var i = 0; i < rows.length; i++)
+          {
+            // Get a reference to this row for fast access
+            var row = rows[i];
+
+            // Get a reference to the "extra" data for this row
+            var extra = row[this.columns["Extra"]];
+
+            // Is this a header row?
+            if (extra && extra.header)
+            {
+              // Yup. It becomes the new parent.
+              parent = i;
+              
+              // Create a branch node for it
+              node =
+                {
+                  type : qx.ui.treevirtual.SimpleTreeDataModel.Type.BRANCH,
+                  parentNodeId  : null,
+                  label         : row[this.columns["Subject"]],
+                  bOpened       : true,
+                  bHeader       : true
+                };
+            }
+            else
+            {
+              // It's not a header row. Create a leaf node for it.
+              node =
+                {
+                  type : qx.ui.treevirtual.SimpleTreeDataModel.Type.LEAF,
+                  parentNodeId : parent,
+                  label        : row[this.columns["Subject"]]
+                };
+            }
+            
+            // Add the node to the node array
+            nodeArr.push(node);
+          }
         }
       }
     },
@@ -245,8 +298,9 @@ qx.Class.define("smart.demo.Application",
         {
           advanced = 
             {
-              fSort          : viewData.sort,
-              fPreInsertRows : viewData.preInsertRows
+              fSort           : viewData.sort,
+              fPreInsertRows  : viewData.preInsertRows,
+              fPostInsertRows : viewData.postInsertRows
             };
         }
         tm.newView(this.views[view].filter, this, advanced);
@@ -269,6 +323,8 @@ qx.Class.define("smart.demo.Application",
 
       // Set up column renderers
       var tcm = this.table.getTableColumnModel();
+      tcm.setDataCellRenderer(this.columns["Subject"],
+                              new smart.demo.TreeWithHeaderRowsCellRenderer());
       tcm.setDataCellRenderer(this.columns["Read?"],
                               new qx.ui.table.cellrenderer.Boolean());
       tcm.setDataCellRenderer(this.columns["Date"],
@@ -331,9 +387,9 @@ qx.Class.define("smart.demo.Application",
                  "Werner Thie",
                  new timezonedate.TimezoneDate("2010-06-09T11:53"),
                  1,
+                 null,
                  true,
                  {
-                   inReplyTo : null
                  }
                ],
                [
@@ -341,9 +397,9 @@ qx.Class.define("smart.demo.Application",
                  "thron7",
                  new timezonedate.TimezoneDate("2010-06-09T14:28"),
                  2,
+                 1,
                  true,
                  {
-                   inReplyTo : 1
                  }
                ],
                [
@@ -351,9 +407,9 @@ qx.Class.define("smart.demo.Application",
                  "Derrell Lipman",
                  new timezonedate.TimezoneDate("2010-06-09T14:32"),
                  3,
+                 2,
                  false,
                  {
-                   inReplyTo : 2
                  }
                ],
                [
@@ -361,9 +417,9 @@ qx.Class.define("smart.demo.Application",
                  "Tobias Oetiker",
                  new timezonedate.TimezoneDate("2010-06-08T07:56"),
                  4,
+                 null,
                  true,
                  {
-                   inReplyTo : null
                  }
                ],
                [
@@ -371,9 +427,9 @@ qx.Class.define("smart.demo.Application",
                  "MartinWitteman",
                  new timezonedate.TimezoneDate("2010-06-09T12:53"),
                  5,
+                 4,
                  true,
                  {
-                   inReplyTo : 4
                  }
                ],
                [
@@ -381,9 +437,9 @@ qx.Class.define("smart.demo.Application",
                  "Tobias Oetiker",
                  new timezonedate.TimezoneDate("2010-06-09T13:42"),
                  6,
+                 5,
                  true,
                  {
-                   inReplyTo : 5
                  }
                ],
                [
@@ -391,9 +447,9 @@ qx.Class.define("smart.demo.Application",
                  "MartinWitteman",
                  new timezonedate.TimezoneDate("2010-06-09T14:28"),
                  7,
+                 6,
                  false,
                  {
-                   inReplyTo : 6
                  }
                ],
                [
@@ -401,9 +457,9 @@ qx.Class.define("smart.demo.Application",
                  "Peter Schneider",
                  new timezonedate.TimezoneDate("2010-06-09T09:18"),
                  8,
+                 null,
                  false,
                  {
-                   inReplyTo : null
                  }
                ],
                [
@@ -411,9 +467,9 @@ qx.Class.define("smart.demo.Application",
                  "Derrell Lipman",
                  new timezonedate.TimezoneDate("2010-06-09T13:59"),
                  9,
+                 8,
                  false,
                  {
-                   inReplyTo : 8
                  }
                ],
                [
@@ -421,9 +477,9 @@ qx.Class.define("smart.demo.Application",
                  "Peter Schneider",
                  new timezonedate.TimezoneDate("2010-06-09T13:59"),
                  10,
+                 9,
                  false,
                  {
-                   inReplyTo : 9
                  }
                ],
                [
@@ -431,9 +487,9 @@ qx.Class.define("smart.demo.Application",
                  "Derrell LIpman",
                  new timezonedate.TimezoneDate("2010-06-09T14:04"),
                  11,
+                 10,
                  false,
                  {
-                   inReplyTo : 10
                  }
                ],
                [
@@ -441,9 +497,9 @@ qx.Class.define("smart.demo.Application",
                  "Kenneth Tilton",
                  new timezonedate.TimezoneDate("2010-06-05T23:40"),
                  12,
+                 null,
                  true,
                  {
-                   inReplyTo : null
                  }
                ],
                [
@@ -451,9 +507,9 @@ qx.Class.define("smart.demo.Application",
                  "Ken Tilton",
                  new timezonedate.TimezoneDate("2010-06-09T13:11"),
                  13,
+                 12,
                  true,
                  {
-                   inReplyTo : 12
                  }
                ],
                [
@@ -461,9 +517,9 @@ qx.Class.define("smart.demo.Application",
                  "Joubert Nel",
                  new timezonedate.TimezoneDate("2010-06-09T13:24"),
                  14,
+                 13,
                  true,
                  {
-                   inReplyTo : 13
                  }
                ],
                [
@@ -471,9 +527,9 @@ qx.Class.define("smart.demo.Application",
                  "Kenneth Tilton",
                  new timezonedate.TimezoneDate("2010-06-09T13:40"),
                  15,
+                 14,
                  true,
                  {
-                   inReplyTo : 14
                  }
                ],
                [
@@ -481,9 +537,9 @@ qx.Class.define("smart.demo.Application",
                  "Tobias Oetiker",
                  new timezonedate.TimezoneDate("2010-06-08T10:59"),
                  16,
+                 null,
                  false,
                  {
-                   inReplyTo : null
                  }
                ],
                [
@@ -491,9 +547,9 @@ qx.Class.define("smart.demo.Application",
                  "panyasan",
                  new timezonedate.TimezoneDate("2010-06-09T07:48"),
                  17,
+                 16,
                  false,
                  {
-                   inReplyTo : 16
                  }
                ],
                [
@@ -501,9 +557,9 @@ qx.Class.define("smart.demo.Application",
                  "Tobi Oetiker",
                  new timezonedate.TimezoneDate("2010-06-09T13:24"),
                  18,
+                 16,
                  false,
                  {
-                   inReplyTo : 16
                  }
                ],
                [
@@ -511,9 +567,9 @@ qx.Class.define("smart.demo.Application",
                  "panyasan",
                  new timezonedate.TimezoneDate("2010-06-09T07:48"),
                  19,
+                 null,
                  false,
                  {
-                   inReplyTo : null
                  }
                ],
                [
@@ -521,9 +577,9 @@ qx.Class.define("smart.demo.Application",
                  "thron7",
                  new timezonedate.TimezoneDate("2010-06-09T11:42"),
                  20,
+                 19,
                  false,
                  {
-                   inReplyTo : 19
                  }
                ],
                [
@@ -531,9 +587,9 @@ qx.Class.define("smart.demo.Application",
                  "panyasan",
                  new timezonedate.TimezoneDate("2010-06-09T12:16"),
                  21,
+                 20,
                  false,
                  {
-                   inReplyTo : 20
                  }
                ],
                [
@@ -541,9 +597,9 @@ qx.Class.define("smart.demo.Application",
                  "hkalyoncu",
                  new timezonedate.TimezoneDate("2010-06-09T12:57"),
                  22,
+                 21,
                  false,
                  {
-                   inReplyTo : 21
                  }
                ],
                [
@@ -551,9 +607,9 @@ qx.Class.define("smart.demo.Application",
                  "Fritz Zaucker",
                  new timezonedate.TimezoneDate("2010-06-09T12:58"),
                  23,
+                 21,
                  false,
                  {
-                   inReplyTo : 21
                  }
                ],
                [
@@ -561,9 +617,9 @@ qx.Class.define("smart.demo.Application",
                  "panyasan",
                  new timezonedate.TimezoneDate("2010-06-09T13:05"),
                  24,
+                 23,
                  false,
                  {
-                   inReplyTo : 23
                  }
                ],
                [
@@ -571,9 +627,9 @@ qx.Class.define("smart.demo.Application",
                  "thron7",
                  new timezonedate.TimezoneDate("2010-06-09T13:18"),
                  25,
+                 21,
                  false,
                  {
-                   inReplyTo : 21
                  }
                ]
              ];
