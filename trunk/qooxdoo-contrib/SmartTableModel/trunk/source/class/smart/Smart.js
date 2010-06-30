@@ -161,10 +161,14 @@ qx.Class.define("smart.Smart",
     __indices: null,
     __conjunctions: null,
     __backingstore : null,
+    __table : null,
 
     // overridden
     init : function(table)
     {
+      // Save the table object
+      this.__table = table;
+
       // Prevent resetting the selection upon header clicks
       table.setResetSelectionOnHeaderClick(false);
     },
@@ -241,7 +245,7 @@ qx.Class.define("smart.Smart",
      *   Array of filter functions. If you have only one function, you can pass
      *   it without wrapping it in an array.
      *
-     * @param obj {Object ? null}
+     * @param context {Object ? null}
      *   The object to use as <code>this</code> when calling each filter
      *   function.
      *
@@ -255,16 +259,117 @@ qx.Class.define("smart.Smart",
      * @note Each filter function must accept a row data array and return true
      * if the row should be visible in the view or false if it should not.
      */
-    addView: function(filters, obj, conjunction)
+    addView: function(filters, context, conjunction)
+    {
+      var filter;
+
+      // Provide some context
+      context = context || this;
+
+      // If an array of filter functions was provided...
+      if (filters && filters instanceof Array)
+      {
+        // ... then create a single function that provides the specified
+        // conjunction of the provided filters.
+        filter = function(rowdata)
+        {
+          // Get the number of filter functions
+          var flen = filters.length;
+
+          // Which conjunction type is requested?
+          if (conjunction === 'or')
+          {
+            // If any filter returns true, allow the row. If
+            // all filters return false, filter the row.
+            for (var i = 0; i < flen; i++)
+            {
+              if (qx.lang.Function.attempt(filters[i], context, rowdata))
+              {
+                return true;
+              }
+            }
+            return false;
+          }
+          else
+          {
+            // If all filter return true, allow the row. If
+            // any filters return false, filter the row.
+            for (var i = 0; i < flen; i++)
+            {
+              if (!qx.lang.Function.attempt(filters[i], context, rowdata))
+              {
+                return false;
+              }
+            }
+            return true;
+          }
+        }
+      }
+      else if (typeof(filters) == "function") // it's a simple function
+      {
+        filter = filters;
+      }
+      else
+      {
+        // No filter was provided
+        filter = null;
+      }
+
+      var view = this.newView(filter, null, context);
+      return view;
+    },
+
+    /**
+     * Create a new view. A view is a (not necessarily proper) subset of the
+     * model, optionally filtered against a set of criteria, optionally sorted
+     * according to a specific sort function, and optionally post-processed
+     * after initial filtering and sorting.
+     *
+     * @param fFilter {Function|function(row) { return true; } }
+     *   A filter function. The filter is passed a row of data and must return
+     *   <i>true</i> if the row should be included in this view; <i>false</i>
+     *   otherwise. This function is called before rows in the view are
+     *   sorted. This function is never called is fCustom is non-null.
+     *
+     * @param fSort {Function ? qx.ui.table.model.Simple._defaultSortComparatorAscending}
+     *   A sort function. The sort function is passed two rows, <b>row1</b>
+     *   and <b>row2</b> (each of which is an array of column data from the
+     *   data model), and must return 1 if row1 is > rows, -1 if row1 is <
+     *   row2, and 0 if row1 == row2. This function is never called if fCustom
+     *   is non-null.
+     *
+     * @param context {qx.core.Object ? this}
+     *   The object to be bound as "this" to filter, sort, initial, and final
+     *   functions.
+     *
+     * @param fCustom {Function|null}
+     *   A function called instead of filtering and sorting, giving the
+     *   programmer complete control over the data for the view. The function
+     *   is passed the view id (<b>view</b>) as (returned by {#newView}, the
+     *   data model object (<b>dm</b>) from which it can retrieve a view's
+     *   data (typically view 0, the unfiltered view), and either a row of
+     *   data to be inserted (<b>newRow</b>) or null indicating that the
+     *   entire view should be generated. This function must manipulate the
+     *   view's row array which it can retrieve with dm.getViewRowArray(view).
+     *
+     * @return {Object}
+     *   An opaque nandle which identifies the view.
+     */
+    newView: function(fFilter,
+                      fSort,
+                      context,
+                      fCustom)
     {
       this.__backingstore.push([]);
       this.__filters.push([]);
       this.__conjunctions.push('and');
       this.__assoc.push({});
       for (var column in this.__indices)
+      {
         this.__indices[column].push({});
+      }
       var view = this.__views++;
-      this.setFilters(view, filters, obj, conjunction);
+      this.setFilters(view, fFilter, context, "and");
       return view;
     },
 
@@ -2066,7 +2171,7 @@ qx.Class.define("smart.Smart",
       var conjunction = this.__getConjunction(view);	// 'and' or 'or'
 
       // This function combines all the filters over a single row
-      function _test(rowdata)
+      function _test(rowdata, filters)
       {
         if (conjunction === 'or')
         {
@@ -2085,10 +2190,12 @@ qx.Class.define("smart.Smart",
           // If any filter returns false, filter the row
           for (var i = 0; i < flen; i++)
           {
+try {
             if (!filters[i](rowdata))
             {
               return false;
             }
+} catch (e) { console.debug(e); }
           }
           return true;
         }
@@ -2101,7 +2208,7 @@ qx.Class.define("smart.Smart",
       // return the boolean result.
       if (single)
       {
-        return _test(R);
+        return _test(R, filters);
       }
 		
       // We're checking an array of rows. Evaluate each and return the
@@ -2111,7 +2218,7 @@ qx.Class.define("smart.Smart",
       for (var r = 0; r < rlen; r++)
       {
         var Rr = R[r];
-        if (_test(Rr))
+        if (_test(Rr, filters))
         {
           _R.push(Rr);
         }
