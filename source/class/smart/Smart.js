@@ -82,7 +82,7 @@ qx.Class.define("smart.Smart",
      * slot zero. View zero is by definition always unfiltered, so if
      * you want a filtered view, you have to explicitly add one.
      */
-    this.__views = 0;
+    this.__views = [];
     this.__backingstore = [];
     this.__filters = [];
     this.__conjunctions = [];
@@ -192,10 +192,10 @@ qx.Class.define("smart.Smart",
       if (view == old && !force)
         return;
 
-      if (view >= this.__views)
+      if (view >= this.__views.length)
       {
         throw new Error("_applyView: view out of bounds: " +
-                        view + " (0.." + (this.__views - 1) + ")");
+                        view + " (0.." + (this.__views.length - 1) + ")");
       }
 
       // Save the indexed selection using column values from the old view. It
@@ -321,47 +321,80 @@ qx.Class.define("smart.Smart",
       return view;
     },
 
-    /**
-     * Create a new view. A view is a (not necessarily proper) subset of the
-     * model, optionally filtered against a set of criteria, optionally sorted
-     * according to a specific sort function, and optionally post-processed
-     * after initial filtering and sorting.
-     *
-     * @param fFilter {Function|function(row) { return true; } }
-     *   A filter function. The filter is passed a row of data and must return
-     *   <i>true</i> if the row should be included in this view; <i>false</i>
-     *   otherwise. This function is called before rows in the view are
-     *   sorted. This function is never called is fCustom is non-null.
-     *
-     * @param fSort {Function ? qx.ui.table.model.Simple._defaultSortComparatorAscending}
-     *   A sort function. The sort function is passed two rows, <b>row1</b>
-     *   and <b>row2</b> (each of which is an array of column data from the
-     *   data model), and must return 1 if row1 is > rows, -1 if row1 is <
-     *   row2, and 0 if row1 == row2. This function is never called if fCustom
-     *   is non-null.
-     *
-     * @param context {qx.core.Object ? this}
-     *   The object to be bound as "this" to filter, sort, initial, and final
-     *   functions.
-     *
-     * @param fCustom {Function|null}
-     *   A function called instead of filtering and sorting, giving the
-     *   programmer complete control over the data for the view. The function
-     *   is passed the view id (<b>view</b>) as (returned by {#newView}, the
-     *   data model object (<b>dm</b>) from which it can retrieve a view's
-     *   data (typically view 0, the unfiltered view), and either a row of
-     *   data to be inserted (<b>newRow</b>) or null indicating that the
-     *   entire view should be generated. This function must manipulate the
-     *   view's row array which it can retrieve with dm.getViewRowArray(view).
-     *
-     * @return {Object}
-     *   An opaque nandle which identifies the view.
-     */
+      /**
+       * Create a new view. A view is a (not necessarily proper) subset of the
+       * model, optionally filtered against a set of criteria, optionally sorted
+       * according to a specific sort function, and optionally post-processed
+       * after initial filtering and sorting.
+       *
+       * @param fFilter {Function|function(row) { return true; } }
+       *   A filter function. The filter is passed a row of data and must return
+       *   <i>true</i> if the row should be included in this view; <i>false</i>
+       *   otherwise. This function is called before rows in the view are
+       *   sorted. This function is never called is fCustom is non-null.
+       *
+       * @param fSort {Function ? qx.ui.table.model.Simple._defaultSortComparatorAscending}
+       *   A sort function. The sort function is passed two rows, <b>row1</b>
+       *   and <b>row2</b> (each of which is an array of column data from the
+       *   data model), and must return 1 if row1 is > rows, -1 if row1 is <
+       *   row2, and 0 if row1 == row2. This function is never called if fCustom
+       *   is non-null.
+       *
+       * @param context {qx.core.Object ? this}
+       *   The object to be bound as "this" to filter, sort, initial, and final
+       *   functions.
+       *
+       * @param advanced {Map|null}
+       *   If provided, this is a map containing fields for advanced use of
+       *   this widget, including:
+       *
+       *     bDeferBuild {Boolean ? false}
+       *       If true, then defer building the view until the first time the
+       *       view is selected. The default is to pre-build the view so that
+       *       it is immediately available upon selection. In many cases,
+       *       deferred building will be entirely reasonable, and allows the
+       *       application to start up more quickly. The programmer should
+       *       usually select commonly-used views to be built upon view
+       *       creation, and all others to be deferred until they are needed.
+       *
+       *    fCustom {Function|null}
+       *       A function called instead of filtering and sorting, giving the
+       *       programmer complete control over the data for the view. The
+       *       function is passed the view id (<b>view</b>) as (returned by
+       *       {#newView}, the data model object (<b>dm</b>) from which it can
+       *       retrieve a view's data (typically view 0, the unfiltered view),
+       *       and either a row of data to be inserted (<b>newRow</b>) or null
+       *       indicating that the entire view should be generated. This
+       *       function must manipulate the view's row array which it can
+       *       retrieve with dm.getViewRowArray(view).
+       *
+       * @return {Object}
+       *   An opaque nandle which identifies the view.
+       */
     newView: function(fFilter,
                       fSort,
                       context,
-                      fCustom)
+                      advanced)
     {
+      /* Create a new view object */
+      var viewData =
+      {
+        // The context in which to run the filter, sort, and custom functions
+        context      : context,
+
+        // Function to filter (or not) an individual row
+        fFilter      : fFilter,
+
+        // Function to sort two rows
+        fSort        : fSort,
+
+        // Requested advanced features
+        advanced     : advanced,
+
+        // Association map for this view
+        associations : {}
+      };
+
       this.__backingstore.push([]);
       this.__filters.push([]);
       this.__conjunctions.push('and');
@@ -370,7 +403,10 @@ qx.Class.define("smart.Smart",
       {
         this.__indices[column].push({});
       }
-      var view = this.__views++;
+
+      var view = this.__views.length;
+      this.__views.push(viewData);
+
       this.setFilters(view, fFilter, context, "and");
       return view;
     },
@@ -496,7 +532,7 @@ qx.Class.define("smart.Smart",
      */
     getViewCount: function ()
     {
-      return this.__views;
+      return this.__views.length;
     },
 
     //
@@ -527,7 +563,7 @@ qx.Class.define("smart.Smart",
     {
       // Construct a new array of hash tables, one for each view.
       var A = [];
-      for (var v = 0; v < this.__views; v++)
+      for (var v = 0; v < this.__views.length; v++)
       {
         A.push({ });
       }
@@ -775,7 +811,7 @@ qx.Class.define("smart.Smart",
         view = this.getView();
       }
       
-      if (view < this.__views)
+      if (view < this.__views.length)
       {
         return this.__assoc[view];
       }
@@ -793,7 +829,7 @@ qx.Class.define("smart.Smart",
         view = this.getView();
       }
       
-      if (view < this.__views)
+      if (view < this.__views.length)
       {
         return this.__filters[view];
       }
@@ -1568,7 +1604,7 @@ qx.Class.define("smart.Smart",
       // affected view by adding or removing the row. Likewise, to maintain
       // the sort we may have to remove the row, it's already there, and
       // re-insert it where it now belongs according to the sort.
-      for (var v = (skipviewzero ? 1 : 0); v < this.__views; v++)
+      for (var v = (skipviewzero ? 1 : 0); v < this.__views.length; v++)
       {
         // Was it filtered out of this view?
         var prev_row = this.__getRowIndex(v, R);
@@ -1954,7 +1990,7 @@ qx.Class.define("smart.Smart",
 
       // Insert the rows into each view, maintaining the sort and the per-view
       // filters
-      for (var v = 0; v < this.__views; v++)
+      for (var v = 0; v < this.__views.length; v++)
       {
         this.__insertRows(v, A, /*runFilters:*/ true, /*alreadySorted:*/ true);
       }
@@ -2084,7 +2120,7 @@ qx.Class.define("smart.Smart",
       // seems inefficient...
       this.__saveSelection();
 
-      for (var v = 0; v < this.__views; v++)
+      for (var v = 0; v < this.__views.length; v++)
       {
         this.__removeRows(v, rows);
       }
@@ -2108,7 +2144,7 @@ qx.Class.define("smart.Smart",
       if (this.getRowCount() > 0)
       {
         this.__clearSelection();
-        for (var v = 0; v < this.__views; v++)
+        for (var v = 0; v < this.__views.length; v++)
         {
           this.__backingstore[v] = [];
         }
@@ -2283,7 +2319,7 @@ try {
     // zero is sorted.
     __evalAllFilters: function(fireEvent, updateAssociationMaps)
     {
-      for (var v = 1; v < this.__views; v++)
+      for (var v = 1; v < this.__views.length; v++)
       {
         this.__evalFilters(v, fireEvent, updateAssociationMaps);
       }
@@ -2322,7 +2358,7 @@ try {
      */
     __updateAssociationMaps: function(view, index)
     {
-      for (var v = 0; v < this.__views; v++)
+      for (var v = 0; v < this.__views.length; v++)
       {
         if (view !== undefined && view != v)
         {
@@ -2409,7 +2445,7 @@ try {
       oldkey = "" + oldkey;
       newkey = "" + newkey;
 
-      for (var view = 0; view < this.__views; view++)
+      for (var view = 0; view < this.__views.length; view++)
       {
         for (var column in this.__indices)
         {
@@ -2442,7 +2478,7 @@ try {
         return undefined;
       }
 
-      for (var v = 0; v < this.__views; v++)
+      for (var v = 0; v < this.__views.length; v++)
       {
         //this.__debugobj(this.__getAssoc(v), "this.__assoc[" + v + "]");
         var r = this.__getAssoc(v)[R.__id];
@@ -2546,7 +2582,7 @@ try {
         }
 
         // Reverse all view backing arrays: O(n)
-        for (var v = 0; v < this.__views; v++)
+        for (var v = 0; v < this.__views.length; v++)
         {
           this.getRowArray(v).reverse();
         }
@@ -2567,7 +2603,7 @@ try {
         comparator.columnIndex = columnIndex;
 
         // Sort all views using the comparator
-        for (var v = 0; v < this.__views; v++)
+        for (var v = 0; v < this.__views.length; v++)
         {
           this.getRowArray(v).sort(comparator);
         }
