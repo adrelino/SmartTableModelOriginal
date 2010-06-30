@@ -80,7 +80,7 @@ qx.Class.define("smart.demo.TreeWithHeaderRowsCellRenderer",
                                this._insetX,
                                this._insetY),
         this._getCellStyle(cellInfo),
-        (node.bHeader
+        (node.__bHeader
          ? 'border-right:0px;width:100%;' +
            'background-color:darkgray;color:white;font-weight:bold;' 
          : ''),
@@ -96,7 +96,7 @@ qx.Class.define("smart.demo.TreeWithHeaderRowsCellRenderer",
 
       // If this is a header cell, prevent rendering additional cells in this
       // row.
-      return node.bHeader;
+      return node.__bHeader;
     }
   }
 });
