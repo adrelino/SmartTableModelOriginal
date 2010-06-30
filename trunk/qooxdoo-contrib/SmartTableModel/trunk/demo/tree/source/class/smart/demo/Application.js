@@ -366,7 +366,7 @@ qx.Class.define("smart.demo.Application",
             dataModel : tm
           };
         
-        this.table = new qx.ui.treevirtual.TreeVirtual(column_names, custom);
+        this.table = new smart.Tree(column_names, custom);
         this.table.setMetaColumnCounts([ -1 ]);
         
         // Switch how nodes are retrieved by the selection manager
