@@ -320,8 +320,11 @@ qx.Class.define("smart.demo.Application",
 
       // Set up column renderers
       var tcm = this.table.getTableColumnModel();
+      var treeWithHeaderRows = new smart.demo.cellrenderer.TreeWithHeaderRows();
+//      treeWithHeaderRows.setHeaderStyle(
+//        "background-color:red;color:white;font-weight:bold;");
       tcm.setDataCellRenderer(this.columns["Subject"],
-                              new smart.demo.TreeWithHeaderRowsCellRenderer());
+                              treeWithHeaderRows);
       tcm.setDataCellRenderer(this.columns["Read?"],
                               new qx.ui.table.cellrenderer.Boolean());
       tcm.setDataCellRenderer(this.columns["Date"],
