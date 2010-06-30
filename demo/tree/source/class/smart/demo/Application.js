@@ -191,13 +191,13 @@ qx.Class.define("smart.demo.Application",
           var node;
           var nodeArr;
           
-          // (Re-)Create the node array for this view
-          nodeArr = srcRowArr.nodeArr = dm.initTree();
-          
           // Clear the alternate row array of any old data. We don't want it
           // used internally until we're ready for it.
           dm.setAlternateRowArray(view, null);
 
+          // (Re-)Create the node array for this view
+          nodeArr = dm.initTree(view);
+          
           // The initial parent node id is the root, id 0
           var parentNodeId = 0;
 
@@ -232,13 +232,12 @@ qx.Class.define("smart.demo.Application",
             }
           }
           
-          // We'll create our tree in the alternate row array, which is used
-          // in preference to the primary row array, to render the table, if
-          // it is set.
-          var destRowArr = dm.setAlternateRowArray(view, []);
+          // The tree will be created in the alternate row array, which is
+          // used in preference to the primary row array, to render the table.
+          dm.setAlternateRowArray(view, []);
 
           // Build the table from the tree data now!
-          dm.buildTableFromTree(nodeArr, srcRowArr, destRowArr);
+          dm.buildTableFromTree(view);
         }
       },
       "Threaded":
@@ -265,13 +264,13 @@ qx.Class.define("smart.demo.Application",
           var node;
           var nodeArr;
           
-          // (Re-)Create the node array for this view
-          nodeArr = srcRowArr.nodeArr = dm.initTree();
-          
-          // Clear the alternate row array of any old data. We don't want the
-          // locate() method searching it.
+          // Clear the alternate row array of any old data. We don't want it
+          // used internally until we're ready for it.
           dm.setAlternateRowArray(view, null);
 
+          // (Re-)Create the node array for this view
+          nodeArr = dm.initTree(view);
+          
           // The initial parent node id is the root, id 0
           var parentNodeId = 0;
           var parentRowId;
@@ -312,13 +311,12 @@ qx.Class.define("smart.demo.Application",
                          false);
           }
           
-          // We'll create our tree in the alternate row array, which is used
-          // in preference to the primary row array, to render the table, if
-          // it is set.
-          var destRowArr = dm.setAlternateRowArray(view, []);
+          // Our tree will be created in the alternate row array, which is
+          // used in preference to the primary row array, to render the table.
+          dm.setAlternateRowArray(view, []);
 
           // Build the table from the tree data now!
-          dm.buildTableFromTree(nodeArr, srcRowArr, destRowArr);
+          dm.buildTableFromTree(view);
         }
       }
     },
@@ -357,7 +355,28 @@ qx.Class.define("smart.demo.Application",
       tm.setColumns(column_names);
 
       // Create a table using the model
-      this.table = new qx.ui.table.Table(tm);
+      if (false)
+      {
+        this.table = new qx.ui.table.Table(tm);
+      }
+      else
+      {
+        var custom =
+          {
+            dataModel : tm
+          };
+        
+        this.table = new qx.ui.treevirtual.TreeVirtual(column_names, custom);
+        this.table.setMetaColumnCounts([ -1 ]);
+        
+        // Switch how nodes are retrieved by the selection manager
+        this.table.getSelectionManager().setGetNodeFunction(
+          function(col, row)
+          {
+            // This function is called in the context of the data model
+            return this.getAlternateRowArray().nodeArr[row][col];
+          });
+      }
 
       // Every row will have a unique Message Id so we'll use that column as
       // an index. The index will allow us to instantly find any message in the

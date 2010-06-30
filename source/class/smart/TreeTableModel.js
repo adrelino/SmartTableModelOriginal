@@ -27,6 +27,8 @@ qx.Class.define("smart.TreeTableModel",
 
   members :
   {
+    __tree : null,
+
     /**
      * Create an initial node list for a new tree.
      *
@@ -34,9 +36,15 @@ qx.Class.define("smart.TreeTableModel",
      *   An array containing a single "root" node which can be used as the
      *   parent of additional nodes added to the tree.
      */
-    initTree : function()
+    initTree : function(view)
     {
-      return [ qx.ui.treevirtual.MTreePrimitive._getEmptyTree() ];
+      var nodeArr = [ qx.ui.treevirtual.MTreePrimitive._getEmptyTree() ];
+      var rowArray = this.getRowArray(view, false);
+      
+      // Save the initial tree array as a property of the row array
+      rowArray.nodeArr = nodeArr;
+      
+      return nodeArr;
     },
 
     /**
@@ -224,8 +232,12 @@ qx.Class.define("smart.TreeTableModel",
       }
     },
 
-    buildTableFromTree : function(nodeArr, srcRowArr, destRowArr)
+    buildTableFromTree : function(view)
     {
+      var srcRowArr = this.getRowArray(view, false);
+      var nodeArr = srcRowArr.nodeArr;
+      var destRowArr = this.getRowArray(view, true);
+
       // Remove everything from the row array
       destRowArr.length = 0;
       
@@ -235,6 +247,197 @@ qx.Class.define("smart.TreeTableModel",
       // Begin in-order traversal of the tree from the root to regenerate a
       // displayable rowArr.
       this.__inorder(nodeArr, srcRowArr, destNodeArr, destRowArr, 0, 1);
+    },
+    
+
+    //
+    // Methods required for compatibility with SimpleTreeDataModel
+    //
+
+    /*
+     * Set the tree object for which this data model is used.
+     *
+     * @param tree {qx.ui.treevirtual.TreeVirtual}
+     *    The tree used to render the data in this model.
+     */
+    setTree : function(tree)
+    {
+      this.__tree = tree;
+    },
+
+    /**
+     * Get the tree object for which this data model is used.
+     *
+     * @return {qx.ui.treevirtual.TreeVirtual}
+     */
+    getTree : function()
+    {
+      return this.__tree;
+    },
+
+    /**
+     * Sorts the model by a column.
+     *
+     * @param columnIndex {Integer} the column to sort by.
+     * @param ascending {Boolean} whether to sort ascending.
+     * @throws {Error} If one tries to sort the tree by column
+     */
+    sortByColumn : function(columnIndex, ascending)
+    {
+      throw new Error("Trees can not be sorted by column");
+    },
+
+
+    /**
+     * Returns the column index the model is sorted by. This model is never
+     * sorted, so -1 is returned.
+     *
+     * @return {Integer}
+     *   -1, to indicate that the model is not sorted.
+     */
+    getSortColumnIndex : function()
+    {
+      return -1;
+    },
+
+
+    /**
+     * Specifies which column the tree is to be displayed in.  The tree is
+     * displayed using the SimpleTreeDataCellRenderer.  Other columns may be
+     * provided which use different cell renderers.
+     *
+     * @param columnIndex {Integer}
+     *   The index of the column in which the tree should be displayed.
+     */
+    setTreeColumn : function(col)
+    {
+      if (col == 0)
+      {
+        return;
+      }
+      
+      throw new Error("The tree is always in column 0 in this implementation.");
+    },
+    
+    getTreeColumn : function()
+    {
+      return 0;
+    },
+    
+    /**
+     * Set state attributes of a node.
+     *
+     * @param nodeReference {Object | Integer}
+     *   The node to have its attributes set.  The node can be represented
+     *   either by the node object, or the node id (as would have been
+     *   returned by addBranch(), addLeaf(), etc.)
+     *
+     * @param attributes {Map}
+     *   Each property name in the map may correspond to the property names of
+     *   a node which are specified as <i>USER-PROVIDED ATTRIBUTES</i> in
+     *   {@link SimpleTreeDataModel}.  Each property value will be assigned
+     *   to the corresponding property of the node specified by nodeId.
+     *
+     * @throws {Error} If the node object or id is not valid.
+     * @return {void}
+     */
+    setState : function(nodeReference, attributes, view)
+    {
+      var node;
+      var nodeId;
+
+      if (typeof(nodeReference) == "object")
+      {
+        node = nodeReference;
+        nodeId = node.nodeId;
+      }
+      else if (typeof(nodeReference) == "number")
+      {
+        nodeId = nodeReference;
+        node = this._nodeArr[nodeId];
+      }
+      else
+      {
+        throw new Error("Expected node object or node id");
+      }
+
+      for (var attribute in attributes)
+      {
+        // Do any attribute-specific processing
+        switch(attribute)
+        {
+        case "bSelected":
+          throw new Error("Selections are maintained by superclass");
+          break;
+
+        case "bOpened":
+          // Don't do anything if the requested state is the same as the
+          // current state.
+          if (attributes[attribute] == node.bOpened)
+          {
+            break;
+          }
+
+          // Get the tree to which this data model is attached
+          var tree = this.__tree;
+
+/*
+          // Are we opening or closing?
+          if (node.bOpened)
+          {
+            // We're closing.  If there are listeners, generate a treeClose
+            // event.
+            tree.fireDataEvent("treeClose", node);
+          }
+          else
+          {
+            // We're opening.  Are there any children?
+            if (node.children.length > 0)
+            {
+              // Yup.  If there any listeners, generate a "treeOpenWithContent"
+              // event.
+              tree.fireDataEvent("treeOpenWithContent", node);
+            }
+            else
+            {
+              // No children.  If there are listeners, generate a
+              // "treeOpenWhileEmpty" event.
+              tree.fireDataEvent("treeOpenWhileEmpty", node);
+            }
+          }
+*/
+
+          // Event handler may have modified the opened state.  Check before
+          // toggling.
+          if (!node.bHideOpenClose)
+          {
+            // It's still boolean.  Toggle the state
+            node.bOpened = !node.bOpened;
+          }
+
+          // Rebuild the table since formerly visible rows may now be
+          // invisible, or vice versa.
+          this.buildTableFromTree(view);
+          break;
+
+        default:
+          // no attribute-specific processing required
+          break;
+        }
+
+        // Set the new attribute value
+        node[attribute] = attributes[attribute];
+      }
+    },
+    
+    /**
+     * Clear all selections in the data model.  This method does not clear
+     * selections displayed in the widget, and is intended for internal use,
+     * not by users of this class.
+     */
+    _clearSelections : function()
+    {
+      // do nothing in this implementation
     }
   }
 });
