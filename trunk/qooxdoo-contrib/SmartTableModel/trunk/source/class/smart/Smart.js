@@ -263,7 +263,7 @@ qx.Class.define("smart.Smart",
             // all filters return false, filter the row.
             for (var i = 0; i < flen; i++)
             {
-              if (qx.lang.Function.attempt(filters[i], context, rowdata))
+              if (filters[i].call(context, rowdata))
               {
                 return true;
               }
@@ -276,7 +276,7 @@ qx.Class.define("smart.Smart",
             // any filters return false, filter the row.
             for (var i = 0; i < flen; i++)
             {
-              if (!qx.lang.Function.attempt(filters[i], context, rowdata))
+              if (!filters[i].call(context, rowdata))
               {
                 return false;
               }
@@ -295,66 +295,70 @@ qx.Class.define("smart.Smart",
         filter = null;
       }
 
-      var view = this.newView(filter, null, context);
+      var view = this.newView(filter, context);
       return view;
     },
 
-      /**
-       * Create a new view. A view is a (not necessarily proper) subset of the
-       * model, optionally filtered against a set of criteria, optionally sorted
-       * according to a specific sort function, and optionally post-processed
-       * after initial filtering and sorting.
-       *
-       * @param fFilter {Function|function(row) { return true; } }
-       *   A filter function. The filter is passed a row of data and must return
-       *   <i>true</i> if the row should be included in this view; <i>false</i>
-       *   otherwise. This function is called before rows in the view are
-       *   sorted. This function is never called is fCustom is non-null.
-       *
-       * @param fSort {Function ? qx.ui.table.model.Simple._defaultSortComparatorAscending}
-       *   A sort function. The sort function is passed two rows, <b>row1</b>
-       *   and <b>row2</b> (each of which is an array of column data from the
-       *   data model), and must return 1 if row1 is > rows, -1 if row1 is <
-       *   row2, and 0 if row1 == row2. This function is never called if fCustom
-       *   is non-null.
-       *
-       * @param context {qx.core.Object ? this}
-       *   The object to be bound as "this" to filter, sort, initial, and final
-       *   functions.
-       *
-       * @param advanced {Map|null}
-       *   If provided, this is a map containing fields for advanced use of
-       *   this widget, including:
-       *
-       *     bDeferBuild {Boolean ? false}
-       *       If true, then defer building the view until the first time the
-       *       view is selected. The default is to pre-build the view so that
-       *       it is immediately available upon selection. In many cases,
-       *       deferred building will be entirely reasonable, and allows the
-       *       application to start up more quickly. The programmer should
-       *       usually select commonly-used views to be built upon view
-       *       creation, and all others to be deferred until they are needed.
-       *
-       *    fCustom {Function|null}
-       *       A function called instead of filtering and sorting, giving the
-       *       programmer complete control over the data for the view. The
-       *       function is passed the view id (<b>view</b>) as (returned by
-       *       {#newView}, the data model object (<b>dm</b>) from which it can
-       *       retrieve a view's data (typically view 0, the unfiltered view),
-       *       and either a row of data to be inserted (<b>newRow</b>) or null
-       *       indicating that the entire view should be generated. This
-       *       function must manipulate the view's row array which it can
-       *       retrieve with dm.getViewRowArray(view).
-       *
-       * @return {Object}
-       *   An opaque nandle which identifies the view.
-       */
+    /**
+     * Create a new view. A view is a (not necessarily proper) subset of the
+     * model, optionally filtered against a set of criteria, and optionally
+     * processed via a set of advanced features.
+     *
+     * @param fFilter {Function|function(row) { return true; } }
+     *   A filter function. The filter is passed a row of data and must return
+     *   <i>true</i> if the row should be included in this view; <i>false</i>
+     *   otherwise.This function is never called is fCustom is non-null.
+     *
+     * @param context {qx.core.Object ? this}
+     *   The object to be bound as "this" to filter, sort, initial, and final
+     *   functions.
+     *
+     * @param advanced {Map|null}
+     *   If provided, this is a map containing fields for advanced use of
+     *   this widget, including:
+     *
+     *     fSort {Function ? getComparator() }
+     *       A sort function. The sort function is passed two rows,
+     *       <b>row1</b> and <b>row2</b> (each of which is an array of column
+     *       data from the data model), and must return 1 if row1 is > rows,
+     *       -1 if row1 is < row2, and 0 if row1 == row2. This function is
+     *       never called if fCustom is non-null.
+     *
+     *     bDeferBuild {Boolean ? false}
+     *       If true, then defer building the view until the first time the
+     *       view is selected. The default is to pre-build the view so that
+     *       it is immediately available upon selection. In many cases,
+     *       deferred building will be entirely reasonable, and allows the
+     *       application to start up more quickly. The programmer should
+     *       usually select commonly-used views to be built upon view
+     *       creation, and all others to be deferred until they are needed.
+     *
+     *    fCustom {Function|null}
+     *       A function called instead of filtering and sorting, giving the
+     *       programmer complete control over the data for the view. The
+     *       function is passed the view id (<b>view</b>) as (returned by
+     *       {#newView}, the data model object (<b>dm</b>) from which it can
+     *       retrieve a view's data (typically view 0, the unfiltered view),
+     *       and either a row of data to be inserted (<b>newRow</b>) or null
+     *       indicating that the entire view should be generated. This
+     *       function must manipulate the view's row array which it can
+     *       retrieve with dm.getViewRowArray(view).
+     *
+     * @return {Object}
+     *   An opaque nandle which identifies the view.
+     */
     newView: function(fFilter,
-                      fSort,
                       context,
                       advanced)
     {
-      /* Create a new view object */
+      // If an advanced object was specified and it includes a sort function...
+      if (advanced && advanced.fSort)
+      {
+        // ... then wrap the sort function in the specified context
+        advanced.fSort = qx.lang.Function.bind(advanced.fSort, context);
+      }
+
+      // Create a new view object
       var viewData =
       {
         // The context in which to run the filter, sort, and custom functions
@@ -365,13 +369,8 @@ qx.Class.define("smart.Smart",
                         ? qx.lang.Function.bind(fFilter, context) 
                         : null),
 
-        // Function to sort two rows
-        fSort        : (fSort
-                        ? qx.lang.Function.bind(fSort, context)
-                        : null),
-
         // Requested advanced features
-        advanced     : advanced,
+        advanced     : advanced || {},
 
         // The "association maps" help us find rows in the different
         // views. For each row in each view, we store an entry in the
@@ -716,6 +715,13 @@ qx.Class.define("smart.Smart",
       if (view == this.getView())
       {
         reapply = true;
+      }
+
+      // If a view-specific sort routine has been specified...
+      var viewData = this.__views[view];
+      if (viewData.advanced.fSort)
+      {
+        A.sort(viewData.advanced.fSort);
       }
 
       this.__backingstore[view] = A;
@@ -1151,12 +1157,15 @@ qx.Class.define("smart.Smart",
         return;
       }
 
+      // Get the view data
+      var viewData = this.__views[view];
+
       // The model is sorted. We have to insert each row in its proper place
       // to maintain the sort.
       //
       // Sort the list of rows to be added.
-      var comparator = this.getComparator();
-      if (!alreadySorted)
+      var comparator = viewData.advanced.fSort || this.getComparator();
+      if (!alreadySorted || viewData.advanced.fSort)
       {
         rows.sort(comparator);
       }
