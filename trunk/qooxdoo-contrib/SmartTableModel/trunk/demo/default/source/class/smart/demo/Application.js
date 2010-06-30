@@ -155,10 +155,6 @@ qx.Class.define("smart.demo.Application", {
 		//
 		// This means we don't have to do any work to maintain the selection when we add or
 		// delete rows, or re-sort the table.
-		//
-		// NOTE: The selection is not maintained across sort operations due to a bug in 
-		// qx.ui.table.pane.Scroller. See http://bugzilla.qooxdoo.org/show_bug.cgi?id=2769
-		//
 		var sm = this.table.getSelectionModel();
 		sm.setSelectionMode(qx.ui.table.selection.Model.MULTIPLE_INTERVAL_SELECTION);
 		tm.indexedSelection(this.columns["Order Number"], sm);
