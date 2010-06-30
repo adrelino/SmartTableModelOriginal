@@ -194,10 +194,9 @@ qx.Class.define("smart.demo.Application",
           // (Re-)Create the node array for this view
           nodeArr = srcRowArr.nodeArr = dm.initTree();
           
-          // We'll create our tree in the alternate row array, which is used
-          // in preference to the primary row array, to render the table, if
-          // it is set.
-          var destRowArr = dm.setAlternateRowArray(view, []);
+          // Clear the alternate row array of any old data. We don't want it
+          // used internally until we're ready for it.
+          dm.setAlternateRowArray(view, null);
 
           // The initial parent node id is the root, id 0
           var parentNodeId = 0;
@@ -216,6 +215,7 @@ qx.Class.define("smart.demo.Application",
             {
               // Yup. It becomes the new parent.
               parentNodeId = dm.addBranch(nodeArr, 
+                                          i,
                                           0,
                                           row[this.columns["Subject"]],
                                           true,
@@ -226,13 +226,98 @@ qx.Class.define("smart.demo.Application",
             {
               // It's not a header row. Create a leaf node for it.
               dm.addLeaf(nodeArr,
+                         i,
                          parentNodeId,
                          row[this.columns["Subject"]]);
             }
           }
           
-          // Render now!
-          dm.render(nodeArr, srcRowArr, destRowArr);
+          // We'll create our tree in the alternate row array, which is used
+          // in preference to the primary row array, to render the table, if
+          // it is set.
+          var destRowArr = dm.setAlternateRowArray(view, []);
+
+          // Build the table from the tree data now!
+          dm.buildTableFromTree(nodeArr, srcRowArr, destRowArr);
+        }
+      },
+      "Threaded":
+      {
+        // Sort by date, with header rows sorted before non-header rows
+        sort : function(row1, row2)
+        {
+          // Retrieve the two date values and convert to ms since epoch
+          var date1 = row1[this.columns["Date"]].getTime();
+          var date2 = row2[this.columns["Date"]].getTime();
+
+          // Earlier dates sort before later dates
+          if (date1 != date2)
+          {
+            return (date1 < date2 ? -1 : 1);
+          }
+
+          // The two dates are the same
+          return 0;
+        },
+        
+        postInsertRows : function(view, srcRowArr, dm)
+        {
+          var node;
+          var nodeArr;
+          
+          // (Re-)Create the node array for this view
+          nodeArr = srcRowArr.nodeArr = dm.initTree();
+          
+          // Clear the alternate row array of any old data. We don't want the
+          // locate() method searching it.
+          dm.setAlternateRowArray(view, null);
+
+          // The initial parent node id is the root, id 0
+          var parentNodeId = 0;
+
+          // For each row of data...
+          for (var i = 0; i < srcRowArr.length; i++)
+          {
+            // Get a reference to this row for fast access
+            var row = srcRowArr[i];
+
+            // Find the message which is this message's parent
+            // Is this message in reply to some previous one?
+            var inReplyTo = row[this.columns["InReplyTo"]] || 0;
+            if (inReplyTo)
+            {
+              // Yup. Locate the parent message
+              parentNodeId = dm.locate(this.columns["MessageId"],
+                                       inReplyTo,
+                                       view) || 0;
+
+              // Increment parent node id since root node is 0 and first
+              // actual node is 1, but rows in row array begin at 0.
+              ++parentNodeId;
+            }
+            else
+            {
+              // No InReplyTo so it's a top-level message
+              parentNodeId = 0;
+            }
+
+            // Add this node to the tree
+            dm.addBranch(nodeArr,
+                         i,
+                         parentNodeId,
+                         row[this.columns["Subject"]],
+                         true,
+                         false,
+                         false);
+          }
+          
+          // We'll create our tree in the alternate row array, which is used
+          // in preference to the primary row array, to render the table, if
+          // it is set.
+          var destRowArr = dm.setAlternateRowArray(view, []);
+
+          // Build the table from the tree data now!
+          dm.buildTableFromTree(nodeArr, srcRowArr, destRowArr);
         }
       }
     },
@@ -273,9 +358,9 @@ qx.Class.define("smart.demo.Application",
       // Create a table using the model
       this.table = new qx.ui.table.Table(tm);
 
-      // Every row will have a unique Order Number so we'll use that column as
-      // an index. The index will allow us to instantly find any order in the
-      // table using its order number.
+      // Every row will have a unique Message Id so we'll use that column as
+      // an index. The index will allow us to instantly find any message in the
+      // table using its message id.
       tm.addIndex(this.columns["MessageId"]);
 
       // Add additional views (the unfiltered view is always present, as view
@@ -291,7 +376,9 @@ qx.Class.define("smart.demo.Application",
         var viewData = this.views[view];
 	viewData.id = ++id;
         var advanced = null;
-        if (viewData.sort || viewData.preInsertRows) 
+        if (viewData.sort || 
+            viewData.preInsertRows || 
+            viewData.postInsertRows) 
         {
           advanced = 
             {
