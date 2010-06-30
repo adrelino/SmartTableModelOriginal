@@ -5,7 +5,8 @@
     http://qooxdoo.org
 
     Copyright:
-      2009 by Arcode Corporation
+      (c) 2009-2010 by Arcode Corporation
+      (c) 2010 by Derrell Lipman
 
      License:
        LGPL: http://www.gnu.org/licenses/lgpl.html
@@ -14,6 +15,7 @@
 
     Authors:
       * Dave Baggett
+      * Derrell Lipman
 
 ************************************************************************ */
 
@@ -294,17 +296,25 @@ qx.Class.define("smart.Smart",
     },
 
     /**
-     * 
-     * Set the filters for a particular view. This removes any filters that may have been
-     * previously set for the view, and will cause the filters to be re-evaluated for every
-     * row in the model.
+     * Set the filters for a particular view. This removes any filters that
+     * may have been previously set for the view, and will cause the filters
+     * to be re-evaluated for every row in the model.
      *
-     * @param view {Integer} The view to modify.
-     * @param filters {Array ? []} Array of filter functions. If you have only one function, you
-     * can pass it without wrapping it in an array.
-     * @param obj {Object ? null} The object to use as <code>this</code> when calling each filter.
-     * @param conjunction {String ? 'and'} How to conjoin the filter functions: 'and' or 'or'.
-     * @return {Integer} the view number (always one greater than the last view number)
+     * @param view {Integer}
+     *    The view to modify.
+     *
+     * @param filters {Array ? []}
+     *    Array of filter functions. If you have only one function, you can
+     *    pass it without wrapping it in an array.
+     *
+     * @param obj {Object ? null}
+     *    The object to use as <code>this</code> when calling each filter.
+     *
+     * @param conjunction {String ? 'and'}
+     *    How to conjoin the filter functions: 'and' or 'or'.
+     *
+     * @return {Integer}
+     *    The view number (always one greater than the last view number)
      *
      * @note View zero is always unfiltered, so you cannot modify its filters.
      */
