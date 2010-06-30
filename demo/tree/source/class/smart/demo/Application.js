@@ -23,7 +23,7 @@
 ************************************************************************ */
 
 /**
- * Smart table model demo: customer service order tracker.
+ * Smart demo: a tree
  */
 qx.Class.define("smart.demo.Application", 
 {
@@ -39,14 +39,16 @@ qx.Class.define("smart.demo.Application",
     //
     columns: 
     {
-      "Order Number": 0,
-      "Customer Name": 1,
-      "Order Date":2,
-      "Vendor Name": 3,
-      "Product Name": 4,
-      "Processed?" : 5,
-      "Shipped?" : 6
+      "Subject"    : 0,
+      "Sender"     : 1,
+      "Date"       : 2,
+      "Message Id" : 3,
+      "Extra"      : 4
     },
+
+    // The maximum column number that's displayed in the table. Other columns
+    // are for filtering, sorting, and tree creation purposes.
+    maxDisplayedColumn : 2,
 
     //
     // Define our views. These are subsets of the table rows defined in terms
@@ -58,56 +60,6 @@ qx.Class.define("smart.demo.Application",
       {
 	// All orders visible
       }
-/*
-      ,
-
-      "Unprocessed Orders": 
-      {
-	// All rows with false in the Processed column are visible
-        filters: function (rowdata)
-        {
-          return !rowdata[this.columns["Processed?"]]; 
-        }
-      },
-
-      "Processed but not Shipped": 
-      {
-	// Processed == true; Shipped == false:
-        filters: 
-        [
-	  function (rowdata)
-          {
-            return rowdata[this.columns["Processed?"]]; 
-          },
-	  function (rowdata)
-          {
-            return !rowdata[this.columns["Shipped?"]];
-          }
-	],
-        
-	conjunction: 'and'
-      },
-      
-      "Open Orders Placed in the Past Four Hours": 
-      {
-	filters: 
-        [
-	  function (rowdata) 
-          {
-	    return !rowdata[this.columns["Processed?"]];
-	  },
-
-	  function (rowdata) 
-          {
-	    var now = (new Date()).getTime();
-	    return (now - rowdata[this.columns["Order Date"]].getTime() <=
-                    4*60*60*1000);
-	  }
-	],
-        
-	conjunction: 'and'
-      }
-*/
     },
 
     // The main entry point for the demo
@@ -117,240 +69,292 @@ qx.Class.define("smart.demo.Application",
       this.base(arguments);
 
       // Enable logging in debug variant
-      if (qx.core.Variant.isSet("qx.debug", "on")) {
+      if (qx.core.Variant.isSet("qx.debug", "on")) 
+      {
         var appender;
 	appender = qx.log.appender.Native;
 	appender = qx.log.appender.Console;
       }
 
       //
-      // Define table model properties
+      // Define data model properties
       //
 
-      // Create the table model
-      var tm = new smart.Smart();
+      // Create the data model
+      var dm = new smart.Smart();
 
       // Set the columns
       var key, column_names = [];
       for (key in this.columns)
       {
-	column_names[this.columns[key]] = key;
+        if (this.columns[key] <= this.maxDisplayedColumn)
+        {
+          column_names[this.columns[key]] = key;
+        }
       }
-      tm.setColumns(column_names);
+      dm.setColumns(column_names);
 
       // Create a table using the model
-      this.table = new qx.ui.table.Table(tm);
-
-      // Establish default sort
-      tm.sortByColumn(this.columns["Order Date"], /*ascending:*/ false);
-
-      // Every row will have a unique Order Number so we'll use that column as
-      // an index. The index will allow us to instantly find any order in the
-      // table using its order number.
-      tm.addIndex(this.columns["Order Number"]);
-
-      //
-      // Add additional views (the unfiltered view is always present, as view
-      // zero).
-      //
-      var id = 0;
-      for (var view in this.views) 
-      {
-	if (view == 'All Orders') 
-        {
-	  this.views[view].id = 0;
-	  continue;
-	}
-	this.views[view].id = ++id;
-	tm.addView(this.views[view].filters,
-                   this,
-	           this.views[view].conjunction);
-      }
-      tm.setView(this.views["All Orders"].id);
-
-      // Enable indexed selection by Order Number. This will cause the model
-      // to automatically preserve the selection across table modifications,
-      // using the Order Number index.
-      //
-      // This means we don't have to do any work to maintain the selection
-      // when we add or delete rows, or re-sort the table.
-      var sm = this.table.getSelectionModel();
-      var MIS = qx.ui.table.selection.Model.MULTIPLE_INTERVAL_SELECTION;
-      sm.setSelectionMode(MIS);
-      tm.indexedSelection(this.columns["Order Number"], sm);
+      this.table = new qx.ui.table.Table(dm);
+      this.getRoot().add(this.table, { edge : 10 });
 
       // Set up column renderers
       var tcm = this.table.getTableColumnModel();
 
-      tcm.setDataCellRenderer(this.columns["Processed?"],
-                              new qx.ui.table.cellrenderer.Boolean());
-      tcm.setDataCellRenderer(this.columns["Shipped?"],
-                              new qx.ui.table.cellrenderer.Boolean());
-      tcm.setDataCellRenderer(this.columns["Order Date"],
+      tcm.setDataCellRenderer(this.columns["Date"],
                               new qx.ui.table.cellrenderer.Date());
 
-      tcm.setColumnWidth(this.columns["Customer Name"], 150);
-      tcm.setColumnWidth(this.columns["Order Date"], 150);
-      tcm.setColumnWidth(this.columns["Product Name"], 250);
+      tcm.setColumnWidth(this.columns["Subject"], 600);
+      tcm.setColumnWidth(this.columns["Sender"], 200);
+      tcm.setColumnWidth(this.columns["Date"], 150);
 
+/*
       // Change the date format for the "Order Date" column
-      var dr = tcm.getDataCellRenderer(this.columns["Order Date"]);
+      var dr = tcm.getDataCellRenderer(this.columns["Date"]);
       dr.setDateFormat(new qx.util.format.DateFormat("yyyy-MM-dd HH:mm:ss"));
+*/
 
+/*
       // Disable the focus row. We only want selection highlighting.
       this.table.getPaneScroller(0).setShowCellFocusIndicator(false);
       this.table.getDataRowRenderer().setHighlightFocusRow(false);
-
-      // Add a bunch of orders "from the past" to populate the table.
-      this.addOrders(100, true);
-
-      // Create a view control so the user can select which view to, er...,
-      // view.
-      var id = 0;
-      var view_control = new qx.ui.form.SelectBox();
-      view_control.set({ width: 300 });
-      var items = [];
-      for (var view in this.views)
-      {
-	var info = this.views[view];
-	var li = new qx.ui.form.ListItem(view);
-	items[info.id] = li;
-	li.setUserData("id", info.id);
-      }
-      for (var i = 0; i < items.length; i++)
-      {
-	view_control.add(items[i]);
-      }
-
-      // Listen to the changeSelection event and update the view accordingly.
-      view_control.addListener("changeSelection",
-                               function (e) 
-                               {
-				 var listitem = e.getData()[0];
-				 var id = listitem.getUserData("id");
-				 this.setView(id);
-			       },
-			       this.table.getTableModel());
-
-      // Add widgets to root canvas
-      var root = this.getRoot();
-      root.add(view_control, { left: 100, top: 50});
-      root.add(this.table, {left: 100, top: 75});
-
-      // Start a listener to add new orders "as they come in".
-      var This = this;
-/*
-      setInterval(function ()
-                  {
-                    This.addOrders(Math.random() * 4, false);
-                  },
-                  5*1000);
-
-      // Start a listener to remove orders "as they are canceled".
-      setInterval(function () { This.cancelOrders(); }, 5*1000);
 */
+
+      // Set the initial data
+      dm.setData(this.testData);
     },
-
-    firstNames: 
-    [
-      "Jacob","Michael","Ethan","Joshua","Daniel","Alexander","Anthony",
-      "William","Christopher","Matthew","Jayden","Andrew","Joseph","David",
-      "Noah","Aiden","James","Ryan","Logan","John","Emma","Isabella",
-      "Emily","Madison","Ava","Olivia","Sophia","Abigail","Elizabeth",
-      "Chloe","Samantha","Addison","Natalie","Mia","Alexis","Alyssa",
-      "Hannah","Ashley","Ella","Sarah"
-    ],
-
-    lastNames: 
-    [
-      "Smith","Johnson","Williams","Jones","Brown","Davis","Miller",
-      "Wilson","Moore","Taylor","Anderson","Thomas","Jackson","White",
-      "Harris","Martin","Thompson","Garcia","Martinez","Robinson",
-      "Clark","Rodriguez","Lewis","Lee","Walker","Hall","Allen",
-      "Young","Hernandez","King","Wright","Lopez","Hill","Scott",
-      "Green","Adams","Baker","Gonzalez","Nelson","Carter","Mitchell",
-      "Perez","Roberts","Turner","Phillips","Campbell","Parker","Evans",
-      "Edwards","Collins","Stewart","Sanchez","Morris","Rogers","Reed",
-      "Cook","Morgan","Bell"
-    ],
     
-    companies: 
+    testData :
+      // Generate a static data model for a series of email messages.
+      // Each row consists, first, of the displayed column data, and finally
+      // the message id and then a map of additional information which may be
+      // used to build a tree from the data.
     [
-      "Acme", "Mainway Industries", "First Rate", "GloboChem", "BigCorp",
-      "AAA", "Tools 'R' Us"
-    ],
-    
-    products: 
-    [
-      "Sprocket", "Bag o' Glass", "Thumb Drive", "Unicycle", 
-      "JavaScript Framework"
-    ],
-	    
-    // Add a randomly generated order to the table.
-    addOrders: function (N, past) 
-    {
-      if (N == undefined) N = 1;	
-      if (past == undefined) past = false;
-
-      function rand(list) 
-      {
-	return list[Math.floor(Math.random() * list.length)];
-      }
-
-      var tm = this.table.getTableModel();
-      var toAdd = [];
-
-      // Create data for N random rows.
-      for (var i = 0; i < N; i++) {
-	var order_time = (new Date()).getTime();
-	var processed = Math.random() > 0.5;
-	var shipped = processed && (Math.random() > 0.5);
-        
-	if (past)
-	  order_time -= (Math.random() * 24 * 60 *60 * 100);
-        
-	toAdd.push(
-          [
-            ++this.orders,                                     // Order Number
-	    rand(this.firstNames) + " " + rand(this.lastNames),	// Customer Name
-	    new Date(order_time),                               // Order Date
-	    rand(this.companies),                               // Vendor
-	    rand(this.products),                                // Product
-	    processed,
-	    shipped
-          ]);
-      }
-
-      // Actually add the rows to the table model. It is more efficient to add
-      // many rows at once than to add rows one at a time.
-      tm.addRows(toAdd);
-    },
-
-    // Cancel a random order with low probability
-    cancelOrders: function () 
-    {
-      if (Math.random() < 0.5)
-      {
-	return;
-      }
-
-      // Pick an order to cancel
-      var order_number = Math.floor(Math.random() * this.orders) ^ 0;
-
-      // See what row the order to be canceled is in. The indexing makes this
-      // is very fast. The row number returned is relative to the current
-      // view.
-      var tm = this.table.getTableModel();
-      var row = tm.locate(this.columns["Order Number"], order_number);
-
-      if (row == undefined)
-      {
-	return;
-      }
-
-      // Remove the row corresponding to the order to be cancelled.  Note that
-      // removing a row from a view removes it from *all* views.
-      tm.removeRows(row, 1);
-    }
+      [
+        "[qooxdoo-devel] break on error in Firebug in func gecko()",
+        "Werner Thie",
+        "2010-06-09 11:53",
+        1,
+        {
+          inReplyTo : null
+        }
+      ],
+      [
+        "Re: [qooxdoo-devel] break on error in Firebug in func gecko()",
+        "thron7",
+        "2010-06-09 14:28",
+        2,
+        {
+          inReplyTo : 1
+        }
+      ],
+      [
+        "Re: [qooxdoo-devel] break on error in Firebug in func gecko()",
+        "Derrell Lipman",
+        "2010-06-09 14:32",
+        3,
+        {
+          inReplyTo : 2
+        }
+      ],
+      [
+        "[qooxdoo-devel] scrolling experience",
+        "Tobias Oetiker",
+        "2010-06-08 07:56",
+        4,
+        {
+          inReplyTo : null
+        }
+      ],
+      [
+        "Re: [qooxdoo-devel] scrolling experience",
+        "MartinWitteman",
+        "2010-06-09 12:53",
+        5,
+        {
+          inReplyTo : 4
+        }
+      ],
+      [
+        "Re: [qooxdoo-devel] scrolling experience",
+        "Tobias Oetiker",
+        "2010-06-09 13:42",
+        6,
+        {
+          inReplyTo : 5
+        }
+      ],
+      [
+        "Re: [qooxdoo-devel] scrolling experience",
+        "MartinWitteman",
+        "2010-06-09 14:28",
+        7,
+        {
+          inReplyTo : 6
+        }
+      ],
+      [
+        "[qooxdoo-devel] How to patch static methods/members? (qooxdoo 1.2-pre)",
+        "Peter Schneider",
+        "2010-06-09 09:18",
+        8,
+        {
+          inReplyTo : null
+        }
+      ],
+      [
+        "Re: [qooxdoo-devel] How to patch static methods/members? (qooxdoo 1.2-pre)",
+        "Derrell Lipman",
+        "2010-06-09 13:59",
+        9,
+        {
+          inReplyTo : 8
+        }
+      ],
+      [
+        "Re: [qooxdoo-devel] How to patch static methods/members? (qooxdoo 1.2-pre)",
+        "Peter Schneider",
+        "2010-06-09 13:59",
+        10,
+        {
+          inReplyTo : 9
+        }
+      ],
+      [
+        "Re: [qooxdoo-devel] How to patch static methods/members? (qooxdoo 1.2-pre)",
+        "Derrell LIpman",
+        "2010-06-09 14:04",
+        11,
+        {
+          inReplyTo : 10
+        }
+      ],
+      [
+        "[qooxdoo-devel] mo better qooxlisp",
+        "Kenneth Tilton",
+        "2010-06-05 23:40",
+        12,
+        {
+          inReplyTo : null
+        }
+      ],
+      [
+        "Re: [qooxdoo-devel][Lisp] mo better qooxlisp",
+        "Ken Tilton",
+        "2010-06-09 13:11",
+        13,
+        {
+          inReplyTo : 12
+        }
+      ],
+      [
+        "Re: [qooxdoo-devel][Lisp] mo better qooxlisp",
+        "Joubert Nel",
+        "2010-06-09 13:24",
+        14,
+        {
+          inReplyTo : 13
+        }
+      ],
+      [
+        "Re: [qooxdoo-devel][Lisp] mo better qooxlisp",
+        "Kenneth Tilton",
+        "2010-06-09 13:40",
+        15,
+        {
+          inReplyTo : 14
+        }
+      ],
+      [
+        "[qooxdoo-devel] a jqPlot qooxdoo integration widget contrib",
+        "Tobias Oetiker",
+        "2010-06-08 10:59",
+        16,
+        {
+          inReplyTo : null
+        }
+      ],
+      [
+        "Re: [qooxdoo-devel] a jqPlot qooxdoo integration widget contrib",
+        "panyasan",
+        "2010-06-09 07:48",
+        17,
+        {
+          inReplyTo : 16
+        }
+      ],
+      [
+        "Re: [qooxdoo-devel] a jqPlot qooxdoo integration widget contrib",
+        "Tobi Oetiker",
+        "2010-06-09 13:24",
+        18,
+        {
+          inReplyTo : 16
+        }
+      ],
+      [
+        "[qooxdoo-devel] Extending application to native window (my favorite bug)",
+        "panyasan",
+        "2010-06-09 07:48",
+        19,
+        {
+          inReplyTo : null
+        }
+      ],
+      [
+        "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
+        "thron7",
+        "2010-06-09 11:42",
+        20,
+        {
+          inReplyTo : 19
+        }
+      ],
+      [
+        "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
+        "panyasan",
+        "2010-06-09 12:16",
+        21,
+        {
+          inReplyTo : 20
+        }
+      ],
+      [
+        "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
+        "hkalyoncu",
+        "2010-06-09 12:57",
+        22,
+        {
+          inReplyTo : 21
+        }
+      ],
+      [
+        "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
+        "Fritz Zaucker",
+        "2010-06-09 12:58",
+        23,
+        {
+          inReplyTo : 21
+        }
+      ],
+      [
+        "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
+        "panyasan",
+        "2010-06-09 13:05",
+        24,
+        {
+          inReplyTo : 23
+        }
+      ],
+      [
+        "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
+        "thron7",
+        "2010-06-09 13:18",
+        25,
+        {
+          inReplyTo : 21
+        }
+      ]
+    ]
   }
 });
