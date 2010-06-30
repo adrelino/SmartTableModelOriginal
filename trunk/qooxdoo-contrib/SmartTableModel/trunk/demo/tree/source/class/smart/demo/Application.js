@@ -196,6 +196,7 @@ qx.Class.define("smart.demo.Application",
 
           // Initially there's no parent
           var parent = null;
+          var parentNode = null;
 
           // For each row of data...
           for (var i = 0; i < rows.length; i++)
@@ -217,10 +218,17 @@ qx.Class.define("smart.demo.Application",
                 {
                   type : qx.ui.treevirtual.SimpleTreeDataModel.Type.BRANCH,
                   parentNodeId  : null,
+                  level         : 1,
                   label         : row[this.columns["Subject"]],
                   bOpened       : true,
-                  bHeader       : true
+                  bHeader       : true,
+                  children      : [],
+                  bFirstChild   : true,
+                  lastChild     : [ true ]
                 };
+              
+              // Save the new parent node
+              parentNode = node;
             }
             else
             {
@@ -229,8 +237,27 @@ qx.Class.define("smart.demo.Application",
                 {
                   type : qx.ui.treevirtual.SimpleTreeDataModel.Type.LEAF,
                   parentNodeId : parent,
-                  label        : row[this.columns["Subject"]]
+                  level         : 2,
+                  label        : row[this.columns["Subject"]],
+                  children      : [],
+                  bFirstChild   : false,
+                  lastChild     : [ true ]
                 };
+              
+              // If the parent's children array is empty...
+              if (parentNode.children.length == 0)
+              {
+                // ... then this is a first child
+                node.bFirstChild = true;
+              }
+              else
+              {
+                // otherwise, the previous child was not the last child
+                parentNode.lastChild[parentNode.lastChild.length - 1] = false;
+              }
+
+              // Add this node to the children list of our parent
+              parentNode.children.push(i);
             }
             
             // Add the node to the node array
