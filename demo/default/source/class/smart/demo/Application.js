@@ -5,7 +5,8 @@
     http://qooxdoo.org
 
     Copyright:
-      2009 by Arcode Corporation
+      (c)2009 by Arcode Corporation
+      (c) 2010 by Derrell Lipman
 
      License:
        LGPL: http://www.gnu.org/licenses/lgpl.html
@@ -14,6 +15,7 @@
 
     Authors:
       * Dave Baggett
+      * Derrell Lipman
 
 ************************************************************************ */
 
