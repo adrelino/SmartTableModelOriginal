@@ -719,13 +719,6 @@ qx.Class.define("smart.Smart",
         reapply = true;
       }
 
-      // If a view-specific sort routine has been specified...
-      var viewData = this.__views[view];
-      if (viewData.advanced.fSort)
-      {
-        A.sort(viewData.advanced.fSort);
-      }
-
       this.__backingstore[view] = A;
 
 /*
@@ -1831,42 +1824,7 @@ qx.Class.define("smart.Smart",
         A = rowArr.slice(0);
       }
 
-      if (false) // This is superfluous, duplicated code. Just use addRows.
-      {
-          // If we're in indexed selection mode, explicitly clear the
-          // selection since we're replacing all the data.
-          this.__clearSelection();
-
-          // Assign a unique ID to each row to use as the key in the
-          // association  maps
-          this.__assignRowIDs(A);
-
-          // The row array is the new row array for view zero.
-          this.__setRowArray(0, A);
-
-          // Regenerate the other views. We don't need to update the
-          // association maps here, because _resort() will do that for us
-          // below. Likewise, we don't need to fire events, because that will
-          // happen when we reapply the current view.
-          this.__evalAllFilters(/*fireEvent:*/ false,
-                                /*updateAssociationMaps:*/ false);
-
-          // Re-sort all views. This will cause all the association maps to
-          // get rebuilt, and will notify listeners with a META_DATA_CHANGED
-          // event.
-          if (this.isSorted())
-          {
-            this._resort();
-          }
-          else
-          {
-            this.__updateAssociationMaps();
-          }
-      }
-      else
-      {
-        this.addRows(A, false, false);
-      }
+      this.addRows(A, false, false);
     },
 
     /**
