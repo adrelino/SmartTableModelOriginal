@@ -80,7 +80,9 @@ qx.Class.define("smart.demo.TreeWithHeaderRowsCellRenderer",
                                this._insetX,
                                this._insetY),
         this._getCellStyle(cellInfo),
-        (node.bHeader ? 'border-right:0px;' : ''),
+        (node.bHeader
+         ? 'border-right:0px;width:100%;background-color:cyan;' 
+         : ''),
         '" ',
         this._getCellAttributes(cellInfo),
         '>' +

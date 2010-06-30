@@ -86,6 +86,17 @@ qx.Class.define("smart.Smart",
     this.__backingstore = [];
 
     /*
+     * Filtering precedes sorting. Some views may want different rows rendered
+     * at different times, i.e. post-sort filtering. The fPostInsertRows
+     * function can retrieve the alternate backing store with the
+     * getRowArray(view, true) method and set it with
+     * setAlternateRowArray(view, rows). If a view's alternate backing store
+     * is non-null, it will be returned by getRowData(); otherwise the primary
+     * backing store will be returned.
+     */
+    this.__alternate_backingstore = [];
+
+    /*
      * Indices give users the ability to quickly find items from column
      * values. The keys are values stored in the rows themselves, in a
      * particular column. Any column can be used as an index, but it is the
@@ -139,6 +150,7 @@ qx.Class.define("smart.Smart",
   {
     __indices: null,
     __backingstore : null,
+    __alternate_backingstore : null,
     __table : null,
 
     // overridden
@@ -389,6 +401,7 @@ qx.Class.define("smart.Smart",
       };
 
       this.__backingstore.push([]);
+      this.__alternate_backingstore.push(null);
       for (var column in this.__indices)
       {
         this.__indices[column].push({});
@@ -677,7 +690,7 @@ qx.Class.define("smart.Smart",
     //
 
     /**
-     * 
+     *
      * Returns all the data for the table as an array of rows, where each row
      * is itself an array.
      *
@@ -685,20 +698,55 @@ qx.Class.define("smart.Smart",
      *   Which model view this operation should apply to. If this parameter is
      *   omitted, it defaults to the value of the {@link #view} property.
      *
+     * @param alternate {Boolean ? auto}
+     *   If a boolean value is provided, the alternate backing store for the
+     *   view (if true) or the primary backing store for the view (if false)
+     *   will be returned. If a boolean value is not provided, then the
+     *   alternate backing store is returned if it is non-null; otherwise the
+     *   primary backing store.
+     *
      * @return {Array}
      *   The row data
      *
      * @note Do not modify the data via the returned array! You should
      * consider it read-only.
      */
-    getRowArray: function (view)
+    getRowArray: function (view, alternate)
     {
       if (view === undefined)
       {
         view = this.getView();
       }
       
-      return this.__backingstore[view];
+      if (typeof alternate == "boolean")
+      {
+        return
+          (alternate
+           ?  this.__alternate_backingstore[view]
+           : this.__backingstore[view]);
+      }
+      else
+      {
+        var ret =
+          this.__alternate_backingstore[view] || this.__backingstore[view];
+        return ret;
+      }
+    },
+
+    /**
+     * Set the alternate backing store for a view.
+     *
+     * @param view {Integer ?}
+     *   Which model view this operation should apply to. If this parameter is
+     *   omitted, it defaults to the value of the {@link #view} property.
+     *
+     * @param store {Array|null ? null}
+     *   The alternate backing store to be used for this view. Non-use of an
+     *   alternate backing store is specified by setting this to null.
+     */
+    setAlternateRowArray : function(view, store)
+    {
+      this.__alternate_backingstore[view] = store;
     },
 
     // Internal use only:
@@ -813,9 +861,13 @@ qx.Class.define("smart.Smart",
                         " (0.." + (rows-1) + ")");
       }
       
+      // If there's an alternate backing store, return (optionally, a copy) of
+      // it; otherwise return (optionally, a copy) of the primary backing
+      // store.
+      var rowArray = this.getRowArray(view);
       return (copy
-              ? this.getRowArray(view)[rowIndex].slice(0)
-              : this.getRowArray(view)[rowIndex]);
+              ? rowArray[rowIndex].slice(0)
+              : rowArray[rowIndex]);
     },
 
     /**
@@ -859,7 +911,8 @@ qx.Class.define("smart.Smart",
         view = this.getView();
       }
 
-      return this.getRowArray(view).length;
+      var rowArray = this.getRowArray(view);
+      return rowArray.length;
     },
 
     /**
