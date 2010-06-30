@@ -70,18 +70,19 @@ qx.Class.define("smart.demo.Application",
           // Obtain a date formatting object
           var dateFormat = new qx.util.format.DateFormat("dd MMM yyyy");
 
-          // The number of milliseconds in a day
-          var msDay = 1000 * 60 * 60 * 24;
-
           // Get the date today
           var todayObj = new timezonedate.TimezoneDate();
 
           // We want the beginning of the day. Set the time to midnight.
           todayObj.setHours(0, 0, 0, 0);
           
+          // Get the time value for the beginning of today
           var today = todayObj.getTime();
           
-          // Calculate the day value for yesterday too
+          // The number of milliseconds in a day
+          var msDay = 1000 * 60 * 60 * 24;
+
+          // Calculate the time value for the beginning of yesterday too
           var yesterday = today - msDay;
 
           // Get (or create) a map of used dates (unique to the day).
@@ -111,13 +112,6 @@ qx.Class.define("smart.demo.Application",
             dayOfDateObj.setHours(0, 0, 0, 0);
             var dayOfDate = dayOfDateObj.getTime();
 
-/*
-            this.debug("Looking at " + 
-                       newRows[i][this.columns["Date"]] + ": " +
-                       "date=" + dayOfDateObj + ", " +
-                       "unique=" + uniqueDates[dayOfDate]);
-*/
-            
             // Do we already have entries for this day?
             if (uniqueDates[dayOfDate] === undefined)
             {
@@ -247,7 +241,7 @@ qx.Class.define("smart.demo.Application",
         var viewData = this.views[view];
 	viewData.id = ++id;
         var advanced = null;
-        if (viewData.sort) 
+        if (viewData.sort || viewData.preInsertRows) 
         {
           advanced = 
             {
