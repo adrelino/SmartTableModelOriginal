@@ -410,7 +410,6 @@ qx.Class.define("smart.Smart",
 
 
         this.__evalFilters(view);
-this.debug("Created new backing store: now length=" + this.__backingstore.length + " equal=" + (this.__backingstore[0] === this.__backingstore[this.__backingstore.length-1]));
 
         // Restore indexed selection -- select the corresponding rows in the
         // new view
@@ -727,9 +726,7 @@ this.debug("Created new backing store: now length=" + this.__backingstore.length
         A.sort(viewData.advanced.fSort);
       }
 
-this.debug("__setRowArray: before reassign: view " + view + ":" + this.__backingstore[view].length + " rows, adding " + A.length + " rows");
       this.__backingstore[view] = A;
-this.debug("__setRowArray: after reassign: view " + view + ":" + this.__backingstore[view].length + " rows");
 
 /*
       this.__debug("__setRowArray: view " + view +
@@ -1205,7 +1202,6 @@ this.debug("__setRowArray: after reassign: view " + view + ":" + this.__backings
       // interleave the two sets of rows.
       //
       var A = this.getRowArray(view);
-this.debug("__insertRows view " + view + ": initially: " + A.length + " rows");
       if (! A.length ||
           comparator(rows[0], A[A.length - 1]) >= 0)
       {
@@ -1869,7 +1865,6 @@ this.debug("__insertRows view " + view + ": initially: " + A.length + " rows");
       }
       else
       {
-this.debug("setData calling addRows: " + A.length + " rows");
         this.addRows(A, false, false);
       }
     },
@@ -1906,8 +1901,6 @@ this.debug("setData calling addRows: " + A.length + " rows");
      */
     addRows: function(rowArr, copy, fireEvent)
     {
-for (var v = 0; v < this.__backingstore.length; v++)
-this.debug("addRows: backing store " + v + " has " + this.__backingstore[v].length + " rows");
       if (qx.core.Variant.isSet("qx.debug", "on"))
       {
         this.assertArray(rowArr[0],
@@ -1955,11 +1948,7 @@ this.debug("addRows: backing store " + v + " has " + this.__backingstore[v].leng
       // filters
       for (var v = 0; v < this.__views.length; v++)
       {
-this.debug("insert rows into view " + v + ": " + A.length + " rows to insert; backing store contains " + this.__backingstore[v].length);
         this.__insertRows(v, A, /*runFilters:*/ true, /*alreadySorted:*/ true);
-this.debug("insert rows into view " + v + ": " + A.length + " rows inserted; backing store contains " + this.__backingstore[v].length);
-this.debug("BACKING STORE 1 LENGTH: " + this.__backingstore[1].length);
-this.debug("BACKING STORE 2 LENGTH: " + this.__backingstore[2].length);
       }
 
       // Restore the indexed selection
