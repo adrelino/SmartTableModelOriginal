@@ -258,6 +258,8 @@ qx.Class.define("smart.Smart",
      *
      * @note Each filter function must accept a row data array and return true
      * if the row should be visible in the view or false if it should not.
+     *
+     * @deprecated Use {#newView} instead.
      */
     addView: function(filters, context, conjunction)
     {
