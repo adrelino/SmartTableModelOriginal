@@ -27,6 +27,13 @@ qx.Class.define("smart.TreeTableModel",
 
   members :
   {
+    /**
+     * Create an initial node list for a new tree.
+     *
+     * @return {Array}
+     *   An array containing a single "root" node which can be used as the
+     *   parent of additional nodes added to the tree.
+     */
     initTree : function()
     {
       return [ qx.ui.treevirtual.MTreePrimitive._getEmptyTree() ];
@@ -69,8 +76,7 @@ qx.Class.define("smart.TreeTableModel",
                          bOpened,
                          bHideOpenCloseButton,
                          bHeader,
-                         icon,
-                         iconSelected)
+                         icon)
     {
       // Create a new node.
       var nodeId =
@@ -81,8 +87,7 @@ qx.Class.define("smart.TreeTableModel",
           bOpened,
           bHideOpenCloseButton,
           qx.ui.treevirtual.MTreePrimitive.Type.BRANCH,
-          icon,
-          iconSelected);
+          icon);
       
       // If this is a header node...
       if (bHeader)
@@ -120,8 +125,7 @@ qx.Class.define("smart.TreeTableModel",
     addLeaf : function(nodeArr,
                        parentNodeId,
                        label,
-                       icon,
-                       iconSelected)
+                       icon)
     {
       return qx.ui.treevirtual.MTreePrimitive._addNode(
         nodeArr,
@@ -130,8 +134,7 @@ qx.Class.define("smart.TreeTableModel",
         false,
         false,
         qx.ui.treevirtual.MTreePrimitive.Type.LEAF,
-        icon,
-        iconSelected);
+        icon);
     },
     
     __inorder : function(srcNodeArr, srcRowArr, 
