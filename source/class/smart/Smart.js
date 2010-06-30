@@ -93,7 +93,7 @@ qx.Class.define("smart.Smart", {
 	     * items from column values. Any column can be used as an index, but it is the user's
 	     * responsibility to ensure that every row has a unique value for this column.
 	     * 
-	     * If defined, this.__indices[N] will be an array of hash tables -- one hash table for
+	     * If defined, this.__indices[N] will be an array of maps -- one map for
 	     * each view -- mapping values from column N to row numbers in that view.
 	     */
 	    this.__indices = {};
@@ -141,6 +141,13 @@ qx.Class.define("smart.Smart", {
 	    __conjunctions: null,
 	    __backingstore : null,
 
+            // overridden
+            init : function(table)
+            {
+              // Prevent resetting the selection upon header clicks
+              table.setResetSelectionOnHeaderClick(false);
+            },
+
 	    /*
 	      ---------------------------------------------------------------------------
 	      PROPERTY APPLY ROUTINES
@@ -158,9 +165,9 @@ qx.Class.define("smart.Smart", {
 	    _applyView: function(view, old, fireEvent, force, preserve_selection) {
 		//this.__debug("_applyView called: view = " + view);
 
-		if (fireEvent == undefined) fireEvent = true;
-		if (force == undefined) force = false;
-		if (preserve_selection == undefined) preserve_selection = true;
+		if (fireEvent === undefined) fireEvent = true;
+		if (force === undefined) force = false;
+		if (preserve_selection === undefined) preserve_selection = true;
 
 		if (view == old && !force)
 		    return;
@@ -281,23 +288,18 @@ qx.Class.define("smart.Smart", {
 		    if (this.getView() == view)
 			this.__saveSelection();
 
-		    if (filters == undefined)
+		    if (filters === undefined)
 			filters = [ ];
 		    else if (typeof(filters) == 'function')
 			filters = [ filters ];
 
 		    //
-		    // Wrap each filter: create a closure that returns a new function that calls the
-		    // filter as a method of obj.
+		    // Wrap each filter so that it is called as a method of obj.
 		    //
 		    var wrappedfilters = [];
-		    if (obj != undefined && obj != null) {
+		    if (obj !== undefined && obj != null) {
 			for (var i = 0; i < filters.length; i++)
-			    wrappedfilters.push(function(_this, filter) { 
-				    return function(R) { 
-					return filter.call(_this, R); 
-				    } 
-				}(obj, filters[i]));
+                            wrappedfilters.push(qx.lang.Function.bind(filters[i], obj));
 		    }
 		    else
 			wrappedfilters = filters;
@@ -341,7 +343,7 @@ qx.Class.define("smart.Smart", {
 
 	    /**
 	     * 
-	     * Adds an index to the table model, keyed to the specified column. Indices are hash maps
+	     * Adds an index to the table model, keyed to the specified column. Indices are maps
 	     * where the keys are those values stored in a particular model column, and where the
 	     * values are row indices in a given view.
 	     *
@@ -350,7 +352,7 @@ qx.Class.define("smart.Smart", {
 	     * that <em>every row has a unique value for the column when converted to string
 	     * form</em>. (In other words, make sure that the column you use as an index contains
 	     * values that uniquely identify rows, and that the values are acceptable keys for
-	     * JavaScript associative arrays.)
+	     * JavaScript maps.)
 	     *
 	     * @param columnIndex {Integer} the column whose values will be the index keys
 	     *
@@ -379,7 +381,7 @@ qx.Class.define("smart.Smart", {
 	     * @param value {var} the value in the indexed column (i.e., the row's unique identifier)
 	     */
 	    locate: function(columnIndex, value, view) {
-		if (view == undefined) view = this.getView();
+		if (view === undefined) view = this.getView();
 		
 		//
 		// Note that we have to explicitly convert the value to a string to be sure that,
@@ -433,7 +435,7 @@ qx.Class.define("smart.Smart", {
 	    // Save the list of indices corresponding to the set of selected rows (push).
 	    //
 	    __saveSelection: function(view, skip) {
-		if (view == undefined) view = this.getView();
+		if (view === undefined) view = this.getView();
 
 		if (!this.__selectionModel || this.__selectionIndex < 0 || this.__selectionIndex >= this.getColumnCount())
 		    return;
@@ -468,7 +470,7 @@ qx.Class.define("smart.Smart", {
 		if (!this.__suppress_indexed_selection)
 		    for (var i = 0; i < selected.length; i++) {
 			var row = this.locate(this.__selectionIndex, selected[i], view);
-			if (row != undefined)
+			if (row !== undefined)
 			    sm.addSelectionInterval(row, row);
 		    }
 		sm.setBatchMode(false);	// send events for selection changes
@@ -501,13 +503,13 @@ qx.Class.define("smart.Smart", {
 	     * read-only.
 	     */
 	    getRowArray: function (view) {
-		if (view == undefined) view = this.getView();
+		if (view === undefined) view = this.getView();
 		return this.__backingstore[view];
 	    },
 
 	    // Internal use only:
 	    __setRowArray: function (view, A, preserve_selection) {
-		if (preserve_selection == undefined)
+		if (preserve_selection === undefined)
 		    preserve_selection = false;
 
 		var reapply = false;
@@ -535,7 +537,7 @@ qx.Class.define("smart.Smart", {
 
 	    // Internal use only:
 	    __getAssoc: function (view) {
-		if (view == undefined) view = this.getView();
+		if (view === undefined) view = this.getView();
 		if (view < this.__views)
 		    return this.__assoc[view];
 		else
@@ -544,7 +546,7 @@ qx.Class.define("smart.Smart", {
 
 	    // Internal use only:
 	    __getFilters: function(view) {
-		if (view == undefined) view = this.getView();
+		if (view === undefined) view = this.getView();
 		if (view < this.__views)
 		    return this.__filters[view];
 		else
@@ -553,7 +555,7 @@ qx.Class.define("smart.Smart", {
 
 	    // Internal use only:
 	    __getConjunction: function(view) {
-		if (view == undefined) view = this.getView();
+		if (view === undefined) view = this.getView();
 		return this.__conjunctions[view];
 	    },
 
@@ -573,8 +575,8 @@ qx.Class.define("smart.Smart", {
 	     * You should consider it read-only. Use {@link #setValue} to modify values.
 	     */
 	    getRowData: function(rowIndex, view, copy) {
-		if (view == undefined) view = this.getView();
-		if (copy == undefined) copy = true;
+		if (view === undefined) view = this.getView();
+		if (copy === undefined) copy = true;
 		var rows = this.getRowCount(view);
 		//this.__debug("there are " + rows + " rows in view " + view + ", rowIndex = " + rowIndex);
 		if (rowIndex < 0 || rowIndex >= rows)
@@ -607,7 +609,7 @@ qx.Class.define("smart.Smart", {
 	     * @return {Integer} the number of rows.
 	     */
 	    getRowCount: function(view) {
-		if (view == undefined) view = this.getView();
+		if (view === undefined) view = this.getView();
 		//this.__debug("returning row count for view " + view + ": " + this.getRowArray(view).length);
 		return this.getRowArray(view).length;
 	    },
@@ -625,7 +627,7 @@ qx.Class.define("smart.Smart", {
 	     * @see #getValueById
 	     */
 	    getValue: function(columnIndex, rowIndex, view) {
-		if (view == undefined) view = this.getView();
+		if (view === undefined) view = this.getView();
 		var rows = this.getRowCount(view);
 		if (rowIndex < 0 || rowIndex >= rows)
 		    throw new Error("this.__rowArr out of bounds: " + rowIndex + " (0.." + rows + ")");
@@ -648,7 +650,7 @@ qx.Class.define("smart.Smart", {
 	     * @see #getValue
 	     */
 	    getValueById: function(columnId, rowIndex, view) {
-		if (view == undefined) view = this.getView();
+		if (view === undefined) view = this.getView();
 		return this.getValue(this.getColumnIndexById(columnId), rowIndex, view);
 	    },
 
@@ -660,7 +662,7 @@ qx.Class.define("smart.Smart", {
 	    // this method, and restore it afterwards.
 	    //
 	    __removeRows: function(view, rows, updateAssociationMaps) {
-		if (updateAssociationMaps == undefined)
+		if (updateAssociationMaps === undefined)
 		    updateAssociationMaps = true;
 
 		var i;
@@ -678,7 +680,7 @@ qx.Class.define("smart.Smart", {
 		    var rowsToRemove = {};
 		    for (i = 0; i < rows.length; i++) {
 			var idx = this.__getRowIndex(view, rows[i]);
-			if (idx != undefined)
+			if (idx !== undefined)
 			    rowsToRemove[idx] = 1;
 		    }
 
@@ -700,7 +702,7 @@ qx.Class.define("smart.Smart", {
 		    var rowsToRemove = [];
 		    for (i = 0; i < rows.length; i++) {
 			var idx = this.__getRowIndex(view, rows[i]);
-			if (idx != undefined)
+			if (idx !== undefined)
 			    rowsToRemove.push(idx);
 		    }
 
@@ -715,7 +717,7 @@ qx.Class.define("smart.Smart", {
 		    //
 		    var len = rowsToRemove.length;
 		    var span;
-		    var A = this.getRowArray(view);
+		    A = this.getRowArray(view);
 		    for (i = 0; i < len; i += span) {
 		        var base = rowsToRemove[i];
 			var row = base;
@@ -747,7 +749,7 @@ qx.Class.define("smart.Smart", {
 	    // association map.
 	    //
 	    __push: function(view, rows, updateAssociationMaps) {
-		if (updateAssociationMaps == undefined)
+		if (updateAssociationMaps === undefined)
 		    updateAssociationMaps = true;
 
 		var A = this.getRowArray(view);
@@ -765,7 +767,7 @@ qx.Class.define("smart.Smart", {
 	    // array. Updates the row association map as well.
 	    //
 	    __unshift: function(view, rows, updateAssociationMaps) {
-		if (updateAssociationMaps == undefined)
+		if (updateAssociationMaps === undefined)
 		    updateAssociationMaps = true;
 
 		var A = this.getRowArray(view);
@@ -789,11 +791,11 @@ qx.Class.define("smart.Smart", {
 	    // this method, and restore it afterwards.
 	    //
 	    __insertRows: function(view, rows, runFilters, alreadySorted, updateAssociationMaps) {
-		if (runFilters == undefined)
+		if (runFilters === undefined)
 		    runFilters = true;
-		if (alreadySorted == undefined)
+		if (alreadySorted === undefined)
 		    alreadySorted = false;
-		if (updateAssociationMaps == undefined)
+		if (updateAssociationMaps === undefined)
 		    updateAssociationMaps = true;
 
 		//
@@ -826,7 +828,7 @@ qx.Class.define("smart.Smart", {
 	
 		if (false)
 		    for (var i = 0; i < rows.length; i++)
-			if (rows[i] == undefined)
+			if (rows[i] === undefined)
 			    this.__debug("ASSERTION FAILURE (0) in __insertRows: row[" + i + "] is undefined!");
 
 		//
@@ -840,13 +842,13 @@ qx.Class.define("smart.Smart", {
 		//
 		var A = this.getRowArray(view);
 		if (!A.length || comparator(rows[0], A[A.length - 1]) >= 0) {
-		    this.__debug("__insertRows: view " + view + ": using push strategy");
+		    //this.__debug("__insertRows: view " + view + ": using push strategy");
 
 		    // All rows go at the end.
 		    this.__push(view, rows, updateAssociationMaps);
 		}
 		else if (comparator(rows[rows.length - 1], A[0]) <= 0) {
-		    this.__debug("__insertRows: view " + view + ": using unshift strategy");
+		    //this.__debug("__insertRows: view " + view + ": using unshift strategy");
 
 		    // All rows go at the beginning.
 		    this.__unshift(view, rows, updateAssociationMaps);
@@ -860,10 +862,10 @@ qx.Class.define("smart.Smart", {
 		    // between these two methods, since it will vary by browser.
 		    //
 		    if (rows.length < (A.length >> 1)) {
-			this.__debug("__insertRows: view " + view + ": using splice strategy");
+			//this.__debug("__insertRows: view " + view + ": using splice strategy");
 
 			var len = rows.length;
-			var i, lo = 0, hi = A.length - 1;
+			var lo = 0, hi = A.length - 1;
 			var IPs = [];
 
 			// Determine the proper insertion for each new row.
@@ -925,7 +927,7 @@ qx.Class.define("smart.Smart", {
 			//
 			var span;
 			for (i = len - 1; i >= 0; i -= span) {
-			    if (true) {
+			    if (false) {
 				// debugging assertions
 				if (IPs[i] < 0)
 				    this.__debug("IPs[i] = " + IPs[i]);
@@ -957,7 +959,7 @@ qx.Class.define("smart.Smart", {
 					break;
 				}
 				
-				this.__debug("insertRows: splicing in " + span + " rows");
+				//this.__debug("insertRows: splicing in " + span + " rows");
 
 				// Fill out the arg list for the splice command	
 				splice_rows.reverse();
@@ -969,7 +971,7 @@ qx.Class.define("smart.Smart", {
 			}
 		    }
 		    else {
-			this.__debug("__insertRows: view " + view + ": using copy strategy");
+			//this.__debug("__insertRows: view " + view + ": using copy strategy");
 
 			//
 			// Create a new copy of this view's array by merging the existing rows and the
@@ -980,7 +982,7 @@ qx.Class.define("smart.Smart", {
 			var _A = [];	// _A will become the new A
 			var Ai = 0, AiEnd = A.length;
 			var rlen = rows.length;
-			for (var i = 0; i < rlen; i++) {
+			for (i = 0; i < rlen; i++) {
 			    var R = rows[i];
 
 			    //
@@ -1029,12 +1031,12 @@ qx.Class.define("smart.Smart", {
 	    // values, beginning with column 0.
 	    //
 	    __set: function(columnIndex, rowIndex, V, view) {
-		if (view == undefined) view = this.getView();
+		if (view === undefined) view = this.getView();
 
 		var columns = this.getColumnCount();
 		var R = this.getRowReference(rowIndex, view);	
 		
-	        if (R == undefined) {
+	        if (R === undefined) {
 		    throw new Error("__set: could not find the row corresponding to index " + rowIndex + " in view " + view);
 		    return;
 		}
@@ -1065,7 +1067,7 @@ qx.Class.define("smart.Smart", {
 			// index, we have to update the index for all views since the key for this
 			// row is changing.
 			//
-			if (this.__indices[columnIndex] != undefined)
+			if (this.__indices[columnIndex] !== undefined)
 			    this.__updateUserIndices(columnIndex, /*oldkey:*/ R[columnIndex], /*newkey:*/ V);
 			R[columnIndex] = V;
 		    }
@@ -1089,7 +1091,7 @@ qx.Class.define("smart.Smart", {
 			// index, we have to update the index for all views since the key for this
 			// row is changing.
 			//
-			if (this.__indices[col] != undefined)
+			if (this.__indices[col] !== undefined)
 			    this.__updateUserIndices(col, /*oldkey:*/ R[col], /*newkey:*/ V[col]);
 			R[col] = V[col];
 		    }
@@ -1121,9 +1123,9 @@ qx.Class.define("smart.Smart", {
 	    // use it.
 	    //
 	    __propagateRowChangeToAllViews: function(R, resort, skipviewzero, fireEvent) {
-		if (skipviewzero == undefined)
+		if (skipviewzero === undefined)
 		    skipviewzero = false;
-		if (fireEvent == undefined)
+		if (fireEvent === undefined)
 		    fireEvent = true;
 
 		//
@@ -1149,7 +1151,7 @@ qx.Class.define("smart.Smart", {
 			now_filtered = false;
 		    }
 		    else {
-			was_filtered = (this.__getRowIndex(v, R) == undefined);
+			was_filtered = (this.__getRowIndex(v, R) === undefined);
 			now_filtered = this.__row_is_filtered(v, R);
 		    }
 
@@ -1195,7 +1197,7 @@ qx.Class.define("smart.Smart", {
 		    // listeners the entire table was updated. But it's a bit complicated to figure
 		    // out the exact bounds, so I don't bother doing that yet...
 		    //
-		    // TBD: also, we might have made a changed that didn't affect the currently
+		    // TBD: also, we might have made a change that didn't affect what is currently
 		    // visible. But this is subtle because changes to one view (e.g., view zero)
 		    // can affect other views.
 		    //
@@ -1228,7 +1230,7 @@ qx.Class.define("smart.Smart", {
 	     * Sets a cell value by column ID.
 	     *
 	     * Whenever you have the choice, use {@link #setValue()} instead,
-	     * because this should be faster.
+	     * because it should be faster.
 	     *
 	     * @param columnId {String} The ID of the column.
 	     * @param rowIndex {Integer} The index of the row.
@@ -1243,11 +1245,10 @@ qx.Class.define("smart.Smart", {
 	    },
 
 	    /**
-	     * Sets all column in a paricular row in the specified view to new values. Note that
+	     * Sets all columns in a paricular row in the specified view to new values. Note that
 	     * <em>all views containing this row</em> will reflect this change. The established sort
 	     * and filters will be maintained.
 	     *
-	     * @abstract
 	     * @param rowIndex {Integer} the index of the row.
 	     * @param rowData {Array} An array of values, one for each column.
 	     * @param view {Integer ?} Which model view this operation should apply to. If this
@@ -1276,7 +1277,7 @@ qx.Class.define("smart.Smart", {
 	     * @note This is a computationally expensive operation.
 	     */
 	    setRows: function(rowArr, startIndex, view) {
-		if (view == undefined) view = this.getView();
+		if (view === undefined) view = this.getView();
 
 		// TBD: this could be done a lot faster:
 		for (var i = 0; i < rowArr.length; i++)
@@ -1305,7 +1306,7 @@ qx.Class.define("smart.Smart", {
 //	        if (qx.core.Variant.isSet("qx.debug", "on")) {
 //	            this.assertArray(rowArr[0], "SmartTableModel.setData(): parameter must be an array of arrays.");
 //                }
-		if (copy == undefined)
+		if (copy === undefined)
 		    copy = true;
 		    
 		if (rowArr == null || rowArr.length==0) {
@@ -1332,7 +1333,7 @@ qx.Class.define("smart.Smart", {
 		//
 		this.__clearSelection();
 
-		// Assign a unique ID to each row to use as the hash key in the association maps
+		// Assign a unique ID to each row to use as the key in the association maps
 		this.__assignRowIDs(A);
 
 		// The row array is the new row array for view zero.
@@ -1385,9 +1386,9 @@ qx.Class.define("smart.Smart", {
 	        if (qx.core.Variant.isSet("qx.debug", "on")) {
 	            this.assertArray(rowArr[0], "SmartTableModel.setData(): parameter must be an array of arrays.");
                 }
-		if (copy == undefined)
+		if (copy === undefined)
 		    copy = true;
-		if (fireEvent == undefined)
+		if (fireEvent === undefined)
 		    fireEvent = true;
 
 		if (!rowArr || rowArr.length == 0)
@@ -1421,7 +1422,7 @@ qx.Class.define("smart.Smart", {
 		    this.__notifyDataChanged();
 
 		var end = (new Date()).getTime();
-		this.__debug("total time spent in addRows: " + (end - start) + " msec");
+		//this.__debug("total time spent in addRows: " + (end - start) + " msec");
 	    },
 
 	    /**
@@ -1437,14 +1438,14 @@ qx.Class.define("smart.Smart", {
 	     * @return {void}
 	     */
 	    removeRows: function(startIndex, howMany, view, fireEvent) {
-		if (view == undefined) view = this.getView();
-		if (fireEvent == undefined) fireEvent = true;
+		if (view === undefined) view = this.getView();
+		if (fireEvent === undefined) fireEvent = true;
 
 		var A = this.getRowArray(view);
 
-		if (startIndex == undefined)
+		if (startIndex === undefined)
 		    startIndex = 0;
-		if (howMany == undefined)
+		if (howMany === undefined)
 		    howMany = A.length - startIndex;
 
 		//this.__debug("removeRows: startIndex = " + startIndex + ", howMany = " + howMany + ", view = " + view);
@@ -1479,7 +1480,7 @@ qx.Class.define("smart.Smart", {
 	    removeReferencedRows: function(rows, fireEvent) {
 		//this.__debug("removeReferencedRows: " + rows.length + " rows to remove");
 
-		if (fireEvent == undefined) fireEvent = true;
+		if (fireEvent === undefined) fireEvent = true;
 
 		//
 		// Delete rows from all views. Removing rows can't change sorting or filtering,
@@ -1536,7 +1537,7 @@ qx.Class.define("smart.Smart", {
 	    //
 
 	    //
-	    // Test whether a row or set or rows would be allowed in of a particular view.
+	    // Test whether a row or set or rows would be allowed in a particular view.
 	    //
 	    // If single is true, then R must be a single row, and this returns true (allowed)
 	    // or false (filtered out).
@@ -1547,7 +1548,7 @@ qx.Class.define("smart.Smart", {
 	    // shared by multiple views.
 	    //
 	    __testAllFilters: function(view, R, single) {
-		if (single == undefined)
+		if (single === undefined)
 		    single = true;
 
 		var filters = this.__getFilters(view);
@@ -1621,12 +1622,12 @@ qx.Class.define("smart.Smart", {
 	    //
 	    __evalFilters: function(view, fireEvent, updateAssociationMaps) {
 		// No filters allowed for view zero!
-		if (!view)
+		if (view != 0)
 		    return;
 
-		if (fireEvent == undefined)
+		if (fireEvent === undefined)
 		    fireEvent = true;
-		if (updateAssociationMaps == undefined)
+		if (updateAssociationMaps === undefined)
 		    updateAssociationMaps = true;
 
 		// View zero is always unfiltered, so copy row references from it:
@@ -1666,12 +1667,12 @@ qx.Class.define("smart.Smart", {
 
 	    /*
 	     * Assign a unique ID to each row in the provided array. This ID will uniquely identify
-	     * this row regardless of changes to the row. Unlike a reference, however, the ID is
-	     * hashable, and therefore can be used as a key in a standard JavaScript associative
-	     * array.
+	     * this row regardless of changes to the row. Unlike a reference, however, the ID can be
+             * uniquely converted to a string, and as such, may be used as the name of a property on
+             * a JavaScript object.
 	     *
-	     * Note that this exploits an unusual aspect of JavaScript arrays: you can add
-	     * non-numerical properties to them.
+	     * Note that this exploits an unusual aspect of JavaScript arrays: since an array is
+             * decended from a JavaScript Object, you can add (non-numerical) properties to them.
 	     */
 	    __assignRowIDs: function(A) {
 		for (var i = 0; i < A.length; i++)
@@ -1688,28 +1689,28 @@ qx.Class.define("smart.Smart", {
 	     */
 	    __updateAssociationMaps: function(view, index) {
 		for (var v = 0; v < this.__views; v++) {
-		    if (view != undefined && view != v)	
+		    if (view !== undefined && view != v)	
 			continue;
  		    var A = this.getRowArray(v);
 
 		    // Clear the current association map
-		    if (index == undefined)
+		    if (index === undefined)
 			this.__assoc[v] = {};
 
 		    // Clear the indices
 		    for (var column in this.__indices)
-			if (index == undefined || index == column)
+			if (index === undefined || index == column)
 			    this.__indices[column][v] = {};
 
 		    // Recreate the association map
 		    for (var j = 0; j < A.length; j++) {
 			var R = A[j];
-			if (index == undefined)
+			if (index === undefined)
 			    this.__assoc[v][R.__id] = j;
 
 			// Update user-defined indices as well
-			for (var column in this.__indices)
-			    if (index == undefined || index == column) {
+			for (column in this.__indices)
+			    if (index === undefined || index == column) {
 				//
 				// Note that we have to explicitly convert the value to a string to
 				// be sure that, e.g., floating point numbers will not round.
@@ -1749,7 +1750,7 @@ qx.Class.define("smart.Smart", {
 	    /*
 	     * Update user indices to reflect that a row's key has changed.
 	     *
-	     * This is surgical method that scales poorly; it's only used by __set.
+	     * This is a surgical method that scales poorly; it's only used by __set.
 	     */
 	    __updateUserIndices: function(columnIndex, oldkey, newkey) {
 		//
@@ -1774,7 +1775,7 @@ qx.Class.define("smart.Smart", {
 	     */
 	    __getRowIndex: function(view, R) {
 		try {
-		    if (R.__id == undefined) {
+		    if (R.__id === undefined) {
 			// This row was never added to the model!
 			//this.__debug("__getRowIndex: attempt to find a row with no ID");	
 			//this.__debugobj(R, "rowdata");
@@ -1821,9 +1822,9 @@ qx.Class.define("smart.Smart", {
 	     * @return {Function} the comparator function
 	     */
 	    getComparator: function(columnIndex, ascending) {
-		if (columnIndex == undefined)
+		if (columnIndex === undefined)
 		    columnIndex = this.__sortColumnIndex;
-		if (ascending == undefined)
+		if (ascending === undefined)
 		    ascending = this.__sortAscending;
 
 		var comparator;
@@ -1844,7 +1845,7 @@ qx.Class.define("smart.Smart", {
 
 	    // overridden
 	    sortByColumn : function(columnIndex, ascending, force) {
-		if (force == undefined) 
+		if (force === undefined) 
 		    force = false;
 
 		// Save indexed selection
@@ -1920,7 +1921,7 @@ qx.Class.define("smart.Smart", {
 	    //
 	    __notifyDataChanged: function(view) {
 		if (this.hasListener('dataChanged')) {
-		    if (view == undefined) view = this.getView();
+		    if (view === undefined) view = this.getView();
 		    var data = { 
 			firstRow: 0,
 			lastRow: this.getRowCount(view) - 1,
@@ -1944,9 +1945,9 @@ qx.Class.define("smart.Smart", {
 	     *   http://googleresearch.blogspot.com/2006/06/extra-extra-read-all-about-it-nearly.html
 	     */
 	    __binsearch: function(A, e, comparator, lo, hi) {
-		if (lo == undefined) 
+		if (lo === undefined) 
 		    lo = 0;
-		if (hi == undefined) 
+		if (hi === undefined) 
 		    hi = A.length - 1;
 
 		while (lo <= hi) {
@@ -1973,14 +1974,14 @@ qx.Class.define("smart.Smart", {
 
 	    // Dump an object to the debug log
 	    __debugobj: function(obj, msg, own) {
-		if (msg == undefined)
+		if (msg === undefined)
 		    msg = "";
-		if (own == undefined)
+		if (own === undefined)
 		    own = true;
 
 		this.__debug(msg + " ("  + (obj ? (obj  + "):") : "): (null)"));
 
-		if (obj == null || obj == undefined) {
+		if (obj == null || obj === undefined) {
 		    this.__debug("...(no properties)");
 		    return;
 		}
