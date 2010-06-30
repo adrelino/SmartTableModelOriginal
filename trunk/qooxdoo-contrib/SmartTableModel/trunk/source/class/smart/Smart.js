@@ -310,21 +310,15 @@ qx.Class.define("smart.Smart",
      *   otherwise.This function is never called is fCustom is non-null.
      *
      * @param context {qx.core.Object ? this}
-     *   The object to be bound as "this" to filter, sort, initial, and final
-     *   functions.
+     *   The object to be bound as "this" to each of the filter, sort, pre,
+     *   and post functions.
      *
      * @param advanced {Map|null}
      *   If provided, this is a map containing fields for advanced use of
      *   this widget, including:
      *
-     *     fSort {Function ? getComparator() }
-     *       A sort function. The sort function is passed two rows,
-     *       <b>row1</b> and <b>row2</b> (each of which is an array of column
-     *       data from the data model), and must return 1 if row1 is > rows,
-     *       -1 if row1 is < row2, and 0 if row1 == row2. This function is
-     *       never called if fCustom is non-null.
-     *
      *     bDeferBuild {Boolean ? false}
+     *       [NOT YET IMPLEMENTED]
      *       If true, then defer building the view until the first time the
      *       view is selected. The default is to pre-build the view so that
      *       it is immediately available upon selection. In many cases,
@@ -333,16 +327,24 @@ qx.Class.define("smart.Smart",
      *       usually select commonly-used views to be built upon view
      *       creation, and all others to be deferred until they are needed.
      *
-     *    fCustom {Function|null}
-     *       A function called instead of filtering and sorting, giving the
-     *       programmer complete control over the data for the view. The
-     *       function is passed the view id (<b>view</b>) as (returned by
-     *       {#newView}, the data model object (<b>dm</b>) from which it can
-     *       retrieve a view's data (typically view 0, the unfiltered view),
-     *       and either a row of data to be inserted (<b>newRow</b>) or null
-     *       indicating that the entire view should be generated. This
-     *       function must manipulate the view's row array which it can
-     *       retrieve with dm.getViewRowArray(view).
+     *     fSort {Function ? getComparator() }
+     *       A sort function. The sort function is passed two rows,
+     *       <b>row1</b> and <b>row2</b> (each of which is an array of column
+     *       data from the data model), and must return 1 if row1 is > rows,
+     *       -1 if row1 is < row2, and 0 if row1 == row2. This function is
+     *       never called if fCustom is non-null.
+     *
+     *     fPreInsertRows
+     *       A function which is called when rows are about to be inserted. It
+     *       is passed three parameters: the existing row array for the view,
+     *       the array of rows to be inserted, and a reference to the data
+     *       model. It is legitimate for the function to alter the array of
+     *       rows to be inserted, e.g. by adding additional rows.
+     *       
+     *     fPostInsertRows
+     *       A function which is called after a set of rows has been
+     *       inserted. It is passed two parameters: the existing row array for
+     *       the view and a reference to the data model.
      *
      * @return {Object}
      *   An opaque nandle which identifies the view.
@@ -408,6 +410,7 @@ qx.Class.define("smart.Smart",
 
 
         this.__evalFilters(view);
+this.debug("Created new backing store: now length=" + this.__backingstore.length + " equal=" + (this.__backingstore[0] === this.__backingstore[this.__backingstore.length-1]));
 
         // Restore indexed selection -- select the corresponding rows in the
         // new view
@@ -724,7 +727,9 @@ qx.Class.define("smart.Smart",
         A.sort(viewData.advanced.fSort);
       }
 
+this.debug("__setRowArray: before reassign: view " + view + ":" + this.__backingstore[view].length + " rows, adding " + A.length + " rows");
       this.__backingstore[view] = A;
+this.debug("__setRowArray: after reassign: view " + view + ":" + this.__backingstore[view].length + " rows");
 
 /*
       this.__debug("__setRowArray: view " + view +
@@ -1149,16 +1154,25 @@ qx.Class.define("smart.Smart",
         return;
       }
 
-      // If the model isn't currently sorted, we can just append the new rows
-      // to the end.
-      if (!this.isSorted())
+      // Get the view data
+      var viewData = this.__views[view];
+
+      // If there's a pre-insert rows function, call it now
+      if (viewData.advanced.fPreInsertRows)
+      {
+        viewData.advanced.fPreInsertRows.call(viewData.context,
+                                              this.getRowArray(view),
+                                              rows,
+                                              this);
+      }
+
+      // If the model isn't currently sorted and the view doesn't maintain its
+      // own sort, we can just append the new rows to the end.
+      if (!this.isSorted() && !viewData.advanced.fSort)
       {
         this.__push(view, rows, updateAssociationMaps);
         return;
       }
-
-      // Get the view data
-      var viewData = this.__views[view];
 
       // The model is sorted. We have to insert each row in its proper place
       // to maintain the sort.
@@ -1191,22 +1205,26 @@ qx.Class.define("smart.Smart",
       // interleave the two sets of rows.
       //
       var A = this.getRowArray(view);
+this.debug("__insertRows view " + view + ": initially: " + A.length + " rows");
       if (! A.length ||
           comparator(rows[0], A[A.length - 1]) >= 0)
       {
+        // All rows go at the end.
+
         //this.__debug("__insertRows: view " + view + ": using push strategy");
 
-        // All rows go at the end.
+        // Add the rows at the end
         this.__push(view, rows, updateAssociationMaps);
       }
       else if (comparator(rows[rows.length - 1], A[0]) <= 0)
       {
+        // All rows go at the beginning.
 /*
         this.__debug("__insertRows: view " + view +
                      ": using unshift strategy");
 */
 
-        // All rows go at the beginning.
+        // Add the rows at the beginning
         this.__unshift(view, rows, updateAssociationMaps);
       }
       else
@@ -1817,33 +1835,42 @@ qx.Class.define("smart.Smart",
         A = rowArr.slice(0);
       }
 
-      // If we're in indexed selection mode, explicitly clear the selection
-      // since we're replacing all the data.
-      this.__clearSelection();
-
-      // Assign a unique ID to each row to use as the key in the association
-      // maps
-      this.__assignRowIDs(A);
-
-      // The row array is the new row array for view zero.
-      this.__setRowArray(0, A);
-
-      // Regenerate the other views. We don't need to update the association
-      // maps here, because _resort() will do that for us below. Likewise, we
-      // don't need to fire events, because that will happen when we reapply
-      // the current view.
-      this.__evalAllFilters(/*fireEvent:*/ false,
-                            /*updateAssociationMaps:*/ false);
-
-      // Re-sort all views. This will cause all the association maps to get
-      // rebuilt, and will notify listeners with a META_DATA_CHANGED event.
-      if (this.isSorted())
+      if (false) // This is superfluous, duplicated code. Just use addRows.
       {
-        this._resort();
+          // If we're in indexed selection mode, explicitly clear the
+          // selection since we're replacing all the data.
+          this.__clearSelection();
+
+          // Assign a unique ID to each row to use as the key in the
+          // association  maps
+          this.__assignRowIDs(A);
+
+          // The row array is the new row array for view zero.
+          this.__setRowArray(0, A);
+
+          // Regenerate the other views. We don't need to update the
+          // association maps here, because _resort() will do that for us
+          // below. Likewise, we don't need to fire events, because that will
+          // happen when we reapply the current view.
+          this.__evalAllFilters(/*fireEvent:*/ false,
+                                /*updateAssociationMaps:*/ false);
+
+          // Re-sort all views. This will cause all the association maps to
+          // get rebuilt, and will notify listeners with a META_DATA_CHANGED
+          // event.
+          if (this.isSorted())
+          {
+            this._resort();
+          }
+          else
+          {
+            this.__updateAssociationMaps();
+          }
       }
       else
       {
-        this.__updateAssociationMaps();
+this.debug("setData calling addRows: " + A.length + " rows");
+        this.addRows(A, false, false);
       }
     },
 
@@ -1879,6 +1906,8 @@ qx.Class.define("smart.Smart",
      */
     addRows: function(rowArr, copy, fireEvent)
     {
+for (var v = 0; v < this.__backingstore.length; v++)
+this.debug("addRows: backing store " + v + " has " + this.__backingstore[v].length + " rows");
       if (qx.core.Variant.isSet("qx.debug", "on"))
       {
         this.assertArray(rowArr[0],
@@ -1926,7 +1955,11 @@ qx.Class.define("smart.Smart",
       // filters
       for (var v = 0; v < this.__views.length; v++)
       {
+this.debug("insert rows into view " + v + ": " + A.length + " rows to insert; backing store contains " + this.__backingstore[v].length);
         this.__insertRows(v, A, /*runFilters:*/ true, /*alreadySorted:*/ true);
+this.debug("insert rows into view " + v + ": " + A.length + " rows inserted; backing store contains " + this.__backingstore[v].length);
+this.debug("BACKING STORE 1 LENGTH: " + this.__backingstore[1].length);
+this.debug("BACKING STORE 2 LENGTH: " + this.__backingstore[2].length);
       }
 
       // Restore the indexed selection
@@ -2129,7 +2162,7 @@ qx.Class.define("smart.Smart",
       // No filter at all means everything's allowed.
       if (!filter)
       {
-        return single ? true : R;
+        return single ? true : qx.lang.Array.clone(R);
       }
 
       // Handle the single filter, single row case quickly.
