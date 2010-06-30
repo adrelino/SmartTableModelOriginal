@@ -274,6 +274,7 @@ qx.Class.define("smart.demo.Application",
 
           // The initial parent node id is the root, id 0
           var parentNodeId = 0;
+          var parentRowId;
 
           // For each row of data...
           for (var i = 0; i < srcRowArr.length; i++)
@@ -287,17 +288,17 @@ qx.Class.define("smart.demo.Application",
             if (inReplyTo)
             {
               // Yup. Locate the parent message
-              parentNodeId = dm.locate(this.columns["MessageId"],
-                                       inReplyTo,
-                                       view) || 0;
+              parentRowId = dm.locate(this.columns["MessageId"],
+                                      inReplyTo,
+                                      view) || 0;
 
               // Increment parent node id since root node is 0 and first
-              // actual node is 1, but rows in row array begin at 0.
-              ++parentNodeId;
+              // added node is 1, but rows in row array begin at 0.
+              parentNodeId = parentRowId + 1;
             }
             else
             {
-              // No InReplyTo so it's a top-level message
+              // No InReplyTo so it's a top-level message, a child of the root.
               parentNodeId = 0;
             }
 
