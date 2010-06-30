@@ -66,7 +66,7 @@ qx.Class.define("smart.demo.Application",
       "Grouped By Date":
       {
         // When rows are about to be inserted, add date header rows
-        preInsertRows : function(existingRows, newRows, dm)
+        preInsertRows : function(view, existingRows, newRows, dm)
         {
           // Obtain a date formatting object
           var dateFormat = new qx.util.format.DateFormat("dd MMM yyyy");
@@ -186,23 +186,27 @@ qx.Class.define("smart.demo.Application",
           return 0;
         },
         
-        postInsertRows : function(rows)
+        postInsertRows : function(view, srcRowArr, dm)
         {
           var node;
           var nodeArr;
-
+          
           // (Re-)Create the node array for this view
-          nodeArr = rows.nodeArr = [];
+          nodeArr = srcRowArr.nodeArr = dm.initTree();
+          
+          // We'll create our tree in the alternate row array, which is used
+          // in preference to the primary row array, to render the table, if
+          // it is set.
+          var destRowArr = dm.setAlternateRowArray(view, []);
 
-          // Initially there's no parent
-          var parent = null;
-          var parentNode = null;
+          // The initial parent node id is the root, id 0
+          var parentNodeId = 0;
 
           // For each row of data...
-          for (var i = 0; i < rows.length; i++)
+          for (var i = 0; i < srcRowArr.length; i++)
           {
             // Get a reference to this row for fast access
-            var row = rows[i];
+            var row = srcRowArr[i];
 
             // Get a reference to the "extra" data for this row
             var extra = row[this.columns["Extra"]];
@@ -211,58 +215,24 @@ qx.Class.define("smart.demo.Application",
             if (extra && extra.header)
             {
               // Yup. It becomes the new parent.
-              parent = i;
-              
-              // Create a branch node for it
-              node =
-                {
-                  type : qx.ui.treevirtual.SimpleTreeDataModel.Type.BRANCH,
-                  parentNodeId  : null,
-                  level         : 1,
-                  label         : row[this.columns["Subject"]],
-                  bOpened       : true,
-                  bHeader       : true,
-                  children      : [],
-                  bFirstChild   : true,
-                  lastChild     : [ true ]
-                };
-              
-              // Save the new parent node
-              parentNode = node;
+              parentNodeId = dm.addBranch(nodeArr, 
+                                          0,
+                                          row[this.columns["Subject"]],
+                                          true,
+                                          false,
+                                          true);
             }
             else
             {
               // It's not a header row. Create a leaf node for it.
-              node =
-                {
-                  type : qx.ui.treevirtual.SimpleTreeDataModel.Type.LEAF,
-                  parentNodeId : parent,
-                  level         : 2,
-                  label        : row[this.columns["Subject"]],
-                  children      : [],
-                  bFirstChild   : false,
-                  lastChild     : [ true ]
-                };
-              
-              // If the parent's children array is empty...
-              if (parentNode.children.length == 0)
-              {
-                // ... then this is a first child
-                node.bFirstChild = true;
-              }
-              else
-              {
-                // otherwise, the previous child was not the last child
-                parentNode.lastChild[parentNode.lastChild.length - 1] = false;
-              }
-
-              // Add this node to the children list of our parent
-              parentNode.children.push(i);
+              dm.addLeaf(nodeArr,
+                         parentNodeId,
+                         row[this.columns["Subject"]]);
             }
-            
-            // Add the node to the node array
-            nodeArr.push(node);
           }
+          
+          // Render now!
+          dm.render(nodeArr, srcRowArr, destRowArr);
         }
       }
     },
@@ -286,7 +256,7 @@ qx.Class.define("smart.demo.Application",
       //
 
       // Create the table model
-      var tm = new smart.Smart();
+      var tm = new smart.TreeTableModel();
 
       // Set the columns
       var key, column_names = [];

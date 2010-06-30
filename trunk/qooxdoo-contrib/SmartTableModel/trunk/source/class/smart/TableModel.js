@@ -51,12 +51,11 @@
  * selected view, determine by the view property. This makes the API mostly
  * backwards-compatible with the Simple model.
  */
-qx.Class.define("smart.Smart",
+qx.Class.define("smart.TableModel",
 {
   extend : qx.ui.table.model.Simple,
 
-    // Mixins:
-    include : smart.MSmartUnitTests,	// unit testing code
+  include : smart.MSmartUnitTests,	// unit testing code
 
   /**
    * 
@@ -713,17 +712,16 @@ qx.Class.define("smart.Smart",
      */
     getRowArray: function (view, alternate)
     {
-      if (view === undefined)
+      if (view === undefined || view === null)
       {
         view = this.getView();
       }
       
       if (typeof alternate == "boolean")
       {
-        return
-          (alternate
-           ?  this.__alternate_backingstore[view]
-           : this.__backingstore[view]);
+        return (alternate
+                ?  this.__alternate_backingstore[view]
+                : this.__backingstore[view]);
       }
       else
       {
@@ -743,10 +741,20 @@ qx.Class.define("smart.Smart",
      * @param store {Array|null ? null}
      *   The alternate backing store to be used for this view. Non-use of an
      *   alternate backing store is specified by setting this to null.
+     *
+     * @return {Array|null}
+     *   This method returns its store argument, or null if no store argument
+     *   was provided.
      */
     setAlternateRowArray : function(view, store)
     {
-      this.__alternate_backingstore[view] = store;
+      if (view === undefined || view === null)
+      {
+        view = this.getView();
+      }
+      
+      this.__alternate_backingstore[view] = (store || null);
+      return this.__alternate_backingstore[view];
     },
 
     // Internal use only:
@@ -1183,6 +1191,7 @@ qx.Class.define("smart.Smart",
       if (viewData.advanced.fPreInsertRows)
       {
         viewData.advanced.fPreInsertRows.call(viewData.context,
+                                              view,
                                               this.getRowArray(view),
                                               rows,
                                               this);
@@ -1383,6 +1392,7 @@ qx.Class.define("smart.Smart",
       if (viewData.advanced.fPostInsertRows)
       {
         viewData.advanced.fPostInsertRows.call(viewData.context,
+                                               view,
                                                this.getRowArray(view),
                                                this);
       }
