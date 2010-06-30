@@ -721,12 +721,6 @@ qx.Class.define("smart.Smart",
 
       this.__backingstore[view] = A;
 
-/*
-      this.__debug("__setRowArray: view " + view +
-                   ", getView() = " + this.getView() +
-                   ", A.length = " + this.__backingstore[view].length);
-*/
-
       if (reapply)
       {
         //
@@ -813,11 +807,6 @@ qx.Class.define("smart.Smart",
       
       var rows = this.getRowCount(view);
 
-/*
-      this.__debug("there are " + rows + " rows in view " +
-                   view + ", rowIndex = " + rowIndex);
-*/
-
       if (rowIndex < 0 || rowIndex >= rows)
       {
         throw new Error("rowIndex out of bounds: " + rowIndex +
@@ -870,11 +859,6 @@ qx.Class.define("smart.Smart",
         view = this.getView();
       }
 
-/*      
-      this.__debug("returning row count for view " +
-                   view + ": " + this.getRowArray(view).length);
-*/
-      
       return this.getRowArray(view).length;
     },
 
@@ -1047,11 +1031,6 @@ qx.Class.define("smart.Smart",
         }
       }
 
-/*
-      this.__debug("__removeRows: " + this.getRowArray(view).length +
-                   " rows left after deletion from view " + view);
-*/
-
       // Update the row association maps if any have changed
       //
       // TBD: this doesn't have to be done from scratch if the deletions all
@@ -1174,17 +1153,6 @@ qx.Class.define("smart.Smart",
         rows.sort(comparator);
       }
 	
-/*
-      for (var i = 0; i < rows.length; i++)
-      {
-        if (rows[i] === undefined)
-        {
-          this.__debug("ASSERTION FAILURE (0) in __insertRows: " +
-                       "row[" + i + "] is undefined!");
-        }
-      }
-*/
-
       //
       // First check for two common cases we can handle very quickly:
       //
@@ -1207,12 +1175,6 @@ qx.Class.define("smart.Smart",
       }
       else if (comparator(rows[rows.length - 1], A[0]) <= 0)
       {
-        // All rows go at the beginning.
-/*
-        this.__debug("__insertRows: view " + view +
-                     ": using unshift strategy");
-*/
-
         // Add the rows at the beginning
         this.__unshift(view, rows, updateAssociationMaps);
       }
@@ -1225,14 +1187,10 @@ qx.Class.define("smart.Smart",
         // be between these two methods, since it will vary by browser.
         if (rows.length < (A.length >> 1))
         {
-/*
-          this.__debug("__insertRows: view " + view +
-                       ": using splice strategy");
-*/
-
           var len = rows.length;
           var lo = 0, hi = A.length - 1;
           var IPs = [];
+          var i;
 
           // Determine the proper insertion for each new row.
           for (i = 0; i < len; i++)
@@ -1268,28 +1226,6 @@ qx.Class.define("smart.Smart",
             lo = ip;
           }
 
-/*
-          // Debugging: insure that the insertion points are monotonically
-          // nondecreasing.
-          if (IPs.length != rows.length)
-          {
-            this.__debug("ASSERTION FAILURE (1) in __insertRows");
-          }
-          
-          for (i = 1; i < len; i++)
-          {
-            if (IPs[i - 1] > IPs[i])
-            {
-              this.__debug("ASSERTION FAILURE (2) in __insertRows");
-            }
-          }
-
-          for (i = 0; i < len; i++)
-          {
-            this.__debug("  IPs[" + i + "] = " + IPs[i]);
-          }
-*/
-
           //
           // Now we know where each new row goes. Now splice them all in. We
           // splice them in in reverse order (highest insertion point to
@@ -1305,64 +1241,38 @@ qx.Class.define("smart.Smart",
           var span;
           for (i = len - 1; i >= 0; i -= span)
           {
-/*
-              // debugging assertions
-              if (IPs[i] < 0)
-              {
-                this.__debug("IPs[i] = " + IPs[i]);
-              }
-              if (IPs[i] > A.length)
-              {
-                this.__debug("IPs[i] = " + IPs[i] + ", A.length = " + A.length);
-              }
-*/
-
-            if (false)
+            // Rows to be inserted are contiguous if they all need to be
+            // inserted at the same offset. (This is because the insertion
+            // points don't take into account other rows to be inserted.)
+            var row = IPs[i];
+            var splice_args = [ /*insertionpoint:*/ IPs[i], /*todelete:*/ 0 ];
+            var splice_rows = [ rows[i] ];
+            span = 1;
+            for (var j = 1; i - j >= 0; j++)
             {
-              // Insert the new row
-              A.splice(IPs[i], 0, rows[i]);
-              span = 1;
-            }
-            else
-            {
-              // Rows to be inserted are contiguous if they all need to be
-              // inserted at the same offset. (This is because the insertion
-              // points don't take into account other rows to be inserted.)
-              var row = IPs[i];
-              var splice_args = [ /*insertionpoint:*/ IPs[i], /*todelete:*/ 0 ];
-              var splice_rows = [ rows[i] ];
-              span = 1;
-              for (var j = 1; i - j >= 0; j++)
+              if (IPs[i - j] == row)
               {
-                if (IPs[i - j] == row)
-                {
-                  span++;
-                  splice_rows.push(rows[i - j]);
-                }
-                else
-                {
-                  break;
-                }
+                span++;
+                splice_rows.push(rows[i - j]);
               }
-				
-              //this.__debug("insertRows: splicing in " + span + " rows");
-
-              // Fill out the arg list for the splice command	
-              splice_rows.reverse();
-              splice_args.push.apply(splice_args, splice_rows);
-
-              // Actually call the native splice method
-              A.splice.apply(A, splice_args);
+              else
+              {
+                break;
+              }
             }
+
+            //this.__debug("insertRows: splicing in " + span + " rows");
+
+            // Fill out the arg list for the splice command	
+            splice_rows.reverse();
+            splice_args.push.apply(splice_args, splice_rows);
+
+            // Actually call the native splice method
+            A.splice.apply(A, splice_args);
           }
         }
         else
         {
-/*
-          this.__debug("__insertRows: view " + view +
-                       ": using copy strategy");
-*/
-
           // Create a new copy of this view's array by merging the existing
           // rows and the rows to be added. This requires O(n+m) time, where n
           // is the number of rows in the current view and m is the number of
@@ -1415,6 +1325,15 @@ qx.Class.define("smart.Smart",
           this.__updateAssociationMaps(view);
         }
       }
+
+      // If there's a post-insert rows function, call it now
+      if (viewData.advanced.fPostInsertRows)
+      {
+        viewData.advanced.fPostInsertRows.call(viewData.context,
+                                               this.getRowArray(view),
+                                               this);
+      }
+
     },
 
     // Internal-use method to set a subset of values in a row. This is a bit
@@ -1549,11 +1468,6 @@ qx.Class.define("smart.Smart",
       {
         // Was it filtered out of this view?
         var prev_row = this.__getRowIndex(v, R);
-/*
-        this.__debug("__propagateRowChangeToAllViews: (view " + v + ") " +
-                     "prev_row = " + prev_row);
-*/
-
         var was_filtered, now_filtered;
 
         if (v == 0)
@@ -1568,12 +1482,6 @@ qx.Class.define("smart.Smart",
           now_filtered = this.__row_is_filtered(v, R);
         }
         
-/*
-        this.__debug("__propagateRowChangeToAllViews: (view " + v + ") " +
-                     "was_filtered = " + was_filtered +
-                     ", now_filtered = " + now_filtered);
-*/
- 
         // There are two different modes here. If resort is true, we have to
         // remove and re-insert the row to make sure it ends up in the right
         // place to maintain the sort. If not, we may have to insert the row
@@ -1583,11 +1491,6 @@ qx.Class.define("smart.Smart",
           // remove the row from the view if it was there before
           if (!was_filtered)
           {
-/*
-            this.__debug("__propagateRowChangeToAllViews: " +
-                         "removing row for resorting purposes " +
-                         "(view " + v + ")");
-*/
             this.__removeRows(v, [ R ]);
           }
 
@@ -1595,14 +1498,6 @@ qx.Class.define("smart.Smart",
           if (!now_filtered)
           {
             this.__insertRows(v, [ R ], /*runFilters:*/ false);
-          }
-          else
-          {
-/*
-            this.__debug("__propagateRowChangeToAllViews: " +
-                         "row to be inserted is actually filtered " +
-                         "(view " + v + ")");
-*/
           }
         }
         else
@@ -1612,11 +1507,6 @@ qx.Class.define("smart.Smart",
             if (now_filtered)
             {
               // row was there before; now should not be: remove
-/*
-              this.__debug("__propagateRowChangeToAllViews: " +
-                           "removing row that wasn't filtered and now is " +
-                           "(view " + v + ")");
-*/
               this.__removeRows(v, [ R ]);
             }
             else
@@ -1787,15 +1677,6 @@ qx.Class.define("smart.Smart",
      */
     setData: function(rowArr, copy)
     {
-/*
-      if (qx.core.Variant.isSet("qx.debug", "on"))
-      {
-        this.assertArray(rowArr[0],
-                         "SmartTableModel.setData(): " +
-                         "parameter must be an array of arrays.");
-      }
-*/
-
       if (copy === undefined)
       {
         copy = true;
@@ -1966,11 +1847,6 @@ qx.Class.define("smart.Smart",
         howMany = A.length - startIndex;
       }
 
-/*
-      this.__debug("removeRows: startIndex = " + startIndex +
-                   ", howMany = " + howMany + ", view = " + view);
-*/
-
       if (A.length == 0)
       {
         throw new Error("removeRows: attempt to remove rows from empty view");
@@ -2016,11 +1892,6 @@ qx.Class.define("smart.Smart",
      */
     removeReferencedRows: function(rows, fireEvent)
     {
-/*
-      this.__debug("removeReferencedRows: " +
-                   rows.length + " rows to remove");
-*/
-
       if (fireEvent === undefined)
       {
         fireEvent = true;
@@ -2209,7 +2080,7 @@ qx.Class.define("smart.Smart",
     //
     __ID: 0,	// the next row ID
 
-    /*
+    /**
      * Assign a unique ID to each row in the provided array. This ID will
      * uniquely identify this row regardless of changes to the row. Unlike a
      * reference, however, the ID can be uniquely converted to a string, and
@@ -2227,7 +2098,7 @@ qx.Class.define("smart.Smart",
       }
     },
 
-    /*
+    /**
      * Update the row association maps. The keys are row IDs; the values are
      * row numbers. So an association map for a view tells where a given row
      * appears in the backing store for that view.
@@ -2284,7 +2155,7 @@ qx.Class.define("smart.Smart",
       }
     },
 
-    /*
+    /**
      * This is a more efficient version of __updateAssociationMaps that we can
      * use when we've pushed new rows onto the end of a view. In this case, we
      * don't have to recompute the whole association map from scratch; we just
@@ -2312,7 +2183,7 @@ qx.Class.define("smart.Smart",
       }
     },
 
-    /*
+    /**
      * Update user indices to reflect that a row's key has changed.
      *
      * This is a surgical method that scales poorly; it's only used by __set.
@@ -2335,7 +2206,7 @@ qx.Class.define("smart.Smart",
       }
     },
 
-    /*
+    /**
      * Find which row of the specified view the row reference appears
      * in. Returns undefined if the row reference is not in the view.
      */
@@ -2552,7 +2423,7 @@ qx.Class.define("smart.Smart",
       }
     },
 
-    /*
+    /**
      * Binary search using three-way comparator. Returns the index of element
      * e if it's in the array A. If e is not in A, return the negated index of
      * the element that e would immediately precede, minus one. (I.e., set
