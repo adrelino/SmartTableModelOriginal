@@ -45,6 +45,9 @@ qx.Class.define("smart.TreeTableModel",
      * @param nodeArr {Array}
      *   The array to which new nodes are to be added
      *
+     * @param rowIndex {Integer}
+     *   Index in row array of this node
+     *
      * @param parentNodeId {Integer}
      *   The node id of the parent of the node being added
      *
@@ -71,6 +74,7 @@ qx.Class.define("smart.TreeTableModel",
      *   The node id of the newly-added branch.
      */
     addBranch : function(nodeArr,
+                         rowIndex,
                          parentNodeId,
                          label,
                          bOpened,
@@ -89,11 +93,16 @@ qx.Class.define("smart.TreeTableModel",
           qx.ui.treevirtual.MTreePrimitive.Type.BRANCH,
           icon);
       
+      var node = nodeArr[nodeId];
+
+      // Save the row index
+      node.__rowIndex = rowIndex;
+
       // If this is a header node...
       if (bHeader)
       {
         // ... then mark it as such
-        nodeArr[nodeId].__bHeader = true;
+        node.__bHeader = true;
       }
       
       return nodeId;
@@ -105,6 +114,9 @@ qx.Class.define("smart.TreeTableModel",
      *
      * @param nodeArr {Array}
      *   The array to which new nodes are to be added
+     *
+     * @param rowIndex {Integer}
+     *   Index in row array of this node
      *
      * @param parentNodeId {Integer}
      *   The node id of the parent of the node being added
@@ -123,18 +135,25 @@ qx.Class.define("smart.TreeTableModel",
      * @return {Integer} The node id of the newly-added leaf.
      */
     addLeaf : function(nodeArr,
+                       rowIndex,
                        parentNodeId,
                        label,
                        icon)
     {
-      return qx.ui.treevirtual.MTreePrimitive._addNode(
-        nodeArr,
-        parentNodeId,
-        label,
-        false,
-        false,
-        qx.ui.treevirtual.MTreePrimitive.Type.LEAF,
-        icon);
+      var nodeId =
+        qx.ui.treevirtual.MTreePrimitive._addNode(
+          nodeArr,
+          parentNodeId,
+          label,
+          false,
+          false,
+          qx.ui.treevirtual.MTreePrimitive.Type.LEAF,
+          icon);
+
+      // Save the row index
+      nodeArr[nodeId].__rowIndex = rowIndex;
+      
+      return nodeId;
     },
     
     __inorder : function(srcNodeArr, srcRowArr, 
@@ -143,7 +162,8 @@ qx.Class.define("smart.TreeTableModel",
     {
       var child = null;
       var childNodeId;
-
+      var node = srcNodeArr[nodeId];
+      
       // For each child of the specified node...
       var numChildren = srcNodeArr[nodeId].children.length;
 
@@ -181,12 +201,15 @@ qx.Class.define("smart.TreeTableModel",
           parent = srcNodeArr[parent.parentNodeId];
         }
 
-        // Track the destRowArr index for each node so we can handle selections.
-        child.__rowIndex = destRowArr.length;
+        // Retrieve the source row index
+        var srcRowIndex = child.__rowIndex;
 
         // Add this child to the row data array
-        destRowArr.push(srcRowArr[child.__rowIndex]);
+        destRowArr.push(srcRowArr[srcRowIndex]);
         
+        // Reassign to store the destination row index
+        child.__rowIndex = destRowArr.length;
+
         // Track the node that goes with it, too
         destNodeArr.push(child);
 
@@ -201,7 +224,7 @@ qx.Class.define("smart.TreeTableModel",
       }
     },
 
-    render : function(nodeArr, srcRowArr, destRowArr)
+    buildTableFromTree : function(nodeArr, srcRowArr, destRowArr)
     {
       // Remove everything from the row array
       destRowArr.length = 0;
