@@ -2120,7 +2120,7 @@ qx.Class.define("smart.Smart",
     __evalFilters: function(view, fireEvent, updateAssociationMaps)
     {
       // No filters allowed for view zero!
-      if (view != 0)
+      if (view == 0)
       {
         return;
       }
