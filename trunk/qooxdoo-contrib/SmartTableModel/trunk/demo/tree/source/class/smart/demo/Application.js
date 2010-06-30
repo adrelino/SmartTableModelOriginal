@@ -142,7 +142,6 @@ qx.Class.define("smart.demo.Application",
               headerRow[this.columns["Date"]] = dayOfDateObj;
               
               // Save this new header row to insert later
-this.debug("Adding new header " + headerRow[this.columns["Subject"]]);
               headerRows.push(headerRow);
               
               // This date is now available
