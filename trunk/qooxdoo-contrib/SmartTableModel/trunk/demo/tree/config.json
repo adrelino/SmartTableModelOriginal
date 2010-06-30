@@ -48,6 +48,9 @@
       [
         {
           "manifest" : "../../Manifest.json"
+        },
+        {
+          "manifest" : "../../../../TimezoneDate/trunk/Manifest.json"
         }
       ]
     }
