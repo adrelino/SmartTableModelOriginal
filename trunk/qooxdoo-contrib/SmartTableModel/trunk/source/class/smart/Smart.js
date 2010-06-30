@@ -84,35 +84,16 @@ qx.Class.define("smart.Smart",
      */
     this.__views = [];
     this.__backingstore = [];
-    this.__filters = [];
-    this.__conjunctions = [];
 
     /*
-     * The "association maps" help us find rows in the different
-     * views. For each row in each view, we store an entry in the
-     * corresponding row association map. The keys in the row
-     * association maps are unique row IDs which we generate when rows
-     * are added to the model. If a row does not appear in a
-     * particular backing store array, then its key will map to
-     * undefined.
+     * Indices give users the ability to quickly find items from column
+     * values. The keys are values stored in the rows themselves, in a
+     * particular column. Any column can be used as an index, but it is the
+     * user's responsibility to ensure that every row has a unique value for
+     * this column.
      *
-     * The main reason we need the association maps is so that when we
-     * remove a row we can find instances of that row in all views
-     * without searching.
-     */
-    this.__assoc = [];
-
-    /*
-     * Indices are like association maps, except that the keys are
-     * values stored in the rows themselves, in a particular
-     * column. This gives users the ability to quickly find items from
-     * column values. Any column can be used as an index, but it is
-     * the user's responsibility to ensure that every row has a unique
-     * value for this column.
-     * 
-     * If defined, this.__indices[N] will be an array of maps -- one
-     * map for each view -- mapping values from column N to row
-     * numbers in that view.
+     * If defined, this.__indices[N] will be an array of maps -- one map for
+     * each view -- mapping values from column N to row numbers in that view.
      */
     this.__indices = {};
 
@@ -156,10 +137,7 @@ qx.Class.define("smart.Smart",
 
   members:
   {
-    __filters: null,
-    __assoc: null,
     __indices: null,
-    __conjunctions: null,
     __backingstore : null,
     __table : null,
 
@@ -305,7 +283,7 @@ qx.Class.define("smart.Smart",
             }
             return true;
           }
-        }
+        };
       }
       else if (typeof(filters) == "function") // it's a simple function
       {
@@ -383,31 +361,62 @@ qx.Class.define("smart.Smart",
         context      : context,
 
         // Function to filter (or not) an individual row
-        fFilter      : fFilter,
+        fFilter      : (fFilter 
+                        ? qx.lang.Function.bind(fFilter, context) 
+                        : null),
 
         // Function to sort two rows
-        fSort        : fSort,
+        fSort        : (fSort
+                        ? qx.lang.Function.bind(fSort, context)
+                        : null),
 
         // Requested advanced features
         advanced     : advanced,
 
-        // Association map for this view
+        // The "association maps" help us find rows in the different
+        // views. For each row in each view, we store an entry in the
+        // corresponding row association map. The keys in the row
+        // association maps are unique row IDs which we generate when rows
+        // are added to the model. If a row does not appear in a
+        // particular backing store array, then its key will map to
+        // undefined.
+        // 
+        // The main reason we need the association maps is so that when we
+        // remove a row we can find instances of that row in all views
+        // without searching.
         associations : {}
       };
 
       this.__backingstore.push([]);
-      this.__filters.push([]);
-      this.__conjunctions.push('and');
-      this.__assoc.push({});
       for (var column in this.__indices)
       {
         this.__indices[column].push({});
       }
 
+      // Get the identifier for this view
       var view = this.__views.length;
+      
+      // Add this view
       this.__views.push(viewData);
 
-      this.setFilters(view, fFilter, context, "and");
+      // Establish the filters
+
+        // Save indexed selection
+        if (this.getView() == view)
+        {
+          this.__saveSelection();
+        }
+
+
+        this.__evalFilters(view);
+
+        // Restore indexed selection -- select the corresponding rows in the
+        // new view
+        if (this.getView() == view)
+        {
+          this.__restoreSelection();
+        }
+
       return view;
     },
 
@@ -435,79 +444,6 @@ qx.Class.define("smart.Smart",
       if (this.getView() == view)
       {
         this.__restoreSelection();
-      }
-    },
-
-    /**
-     * Set the filters for a particular view. This removes any filters that
-     * may have been previously set for the view, and will cause the filters
-     * to be re-evaluated for every row in the model.
-     *
-     * @param view {Integer}
-     *    The view to modify.
-     *
-     * @param filters {Array ? []}
-     *    Array of filter functions. If you have only one function, you can
-     *    pass it without wrapping it in an array.
-     *
-     * @param obj {Object ? null}
-     *    The object to use as <code>this</code> when calling each filter.
-     *
-     * @param conjunction {String ? 'and'}
-     *    How to conjoin the filter functions: 'and' or 'or'.
-     *
-     * @return {Integer}
-     *    The view number (always one greater than the last view number)
-     *
-     * @note View zero is always unfiltered, so you cannot modify its filters.
-     */
-    setFilters: function(view, filters, obj, conjunction)
-    {
-      if (view)
-      {
-        // Save indexed selection
-        if (this.getView() == view)
-        {
-          this.__saveSelection();
-        }
-
-        if (filters === undefined)
-        {
-          filters = [ ];
-        }
-        else if (typeof(filters) == 'function')
-        {
-          filters = [ filters ];
-        }
-
-        // Wrap each filter so that it is called as a method of obj.
-        var wrappedfilters = [];
-        if (obj !== undefined && obj != null)
-        {
-          for (var i = 0; i < filters.length; i++)
-          {
-            wrappedfilters.push(qx.lang.Function.bind(filters[i], obj));
-          }
-        }
-        else
-        {
-          wrappedfilters = filters;
-        }
-
-        this.__filters[view] = wrappedfilters;
-        if (conjunction !== 'and' && conjunction !== 'or')
-        {
-          conjunction = 'and';
-        }
-        this.__conjunctions[view] = conjunction;
-        this.__evalFilters(view);
-
-        // Restore indexed selection -- select the corresponding rows in the
-        // new view
-        if (this.getView() == view)
-        {
-          this.__restoreSelection();
-        }
       }
     },
 
@@ -813,7 +749,7 @@ qx.Class.define("smart.Smart",
       
       if (view < this.__views.length)
       {
-        return this.__assoc[view];
+        return this.__views[view].associations;
       }
       else
       {
@@ -822,7 +758,7 @@ qx.Class.define("smart.Smart",
     },
 
     // Internal use only:
-    __getFilters: function(view)
+    __getFilter: function(view)
     {
       if (view === undefined)
       {
@@ -831,23 +767,12 @@ qx.Class.define("smart.Smart",
       
       if (view < this.__views.length)
       {
-        return this.__filters[view];
+        return this.__views[view].fFilter;
       }
       else
       {
         return undefined;
       }
-    },
-
-    // Internal use only:
-    __getConjunction: function(view)
-    {
-      if (view === undefined)
-      {
-        view = this.getView();
-      }
-      
-      return this.__conjunctions[view];
     },
 
     /**
@@ -2190,53 +2115,18 @@ qx.Class.define("smart.Smart",
         single = true;
       }
 
-      var filters = this.__getFilters(view);
-      var flen = filters.length;
-
-      // Handle the single filter, single row case quickly.
-      if (single && flen == 1)
-      {
-        return filters[0](R);
-      }
+      var filter = this.__getFilter(view);
 
       // No filter at all means everything's allowed.
-      if (flen == 0)
+      if (!filter)
       {
         return single ? true : R;
       }
 
-      // Get the conjunction and combine all the filters
-      var conjunction = this.__getConjunction(view);	// 'and' or 'or'
-
-      // This function combines all the filters over a single row
-      function _test(rowdata, filters)
+      // Handle the single filter, single row case quickly.
+      if (single)
       {
-        if (conjunction === 'or')
-        {
-          // If any filter returns true, allow the row
-          for (var i = 0; i < flen; i++)
-          {
-            if (filters[i](rowdata))
-            {
-              return true;
-            }
-          }
-          return false;
-        }
-        else
-        {
-          // If any filter returns false, filter the row
-          for (var i = 0; i < flen; i++)
-          {
-try {
-            if (!filters[i](rowdata))
-            {
-              return false;
-            }
-} catch (e) { console.debug(e); }
-          }
-          return true;
-        }
+        return filter(R);
       }
 
       //
@@ -2246,7 +2136,7 @@ try {
       // return the boolean result.
       if (single)
       {
-        return _test(R, filters);
+        return filter(R);
       }
 		
       // We're checking an array of rows. Evaluate each and return the
@@ -2256,7 +2146,7 @@ try {
       for (var r = 0; r < rlen; r++)
       {
         var Rr = R[r];
-        if (_test(Rr, filters))
+        if (filter(Rr))
         {
           _R.push(Rr);
         }
@@ -2370,7 +2260,7 @@ try {
         // Clear the current association map
         if (index === undefined)
         {
-          this.__assoc[v] = {};
+          this.__views[v].associations = {};
         }
 
         // Clear the indices
@@ -2388,7 +2278,7 @@ try {
           var R = A[j];
           if (index === undefined)
           {
-            this.__assoc[v][R.__id] = j;
+            this.__views[v].associations[R.__id] = j;
           }
 
           // Update user-defined indices as well
@@ -2480,9 +2370,7 @@ try {
 
       for (var v = 0; v < this.__views.length; v++)
       {
-        //this.__debugobj(this.__getAssoc(v), "this.__assoc[" + v + "]");
         var r = this.__getAssoc(v)[R.__id];
-        //this.__debug("__getRowIndex: index of row in view " + v + " is " + r);
       }
 		    
       return this.__getAssoc(view)[R.__id];
@@ -2767,11 +2655,8 @@ try {
 
   destruct : function()
   {
-    this.__filters = null;
     this.__views = null;
-    this.__conjunctions = null;
     this.__backingstore = null;
-    this.__assoc = null;
     this.__indices = null;
     this.__selection_stack = null;
   }
