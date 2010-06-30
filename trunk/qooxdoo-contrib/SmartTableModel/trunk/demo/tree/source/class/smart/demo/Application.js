@@ -359,6 +359,10 @@ qx.Class.define("smart.demo.Application",
       {
         this.table = new qx.ui.table.Table(tm);
       }
+      else if (true)
+      {
+        this.table = new smart.Tree(tm);
+      }
       else
       {
         var custom =
@@ -368,14 +372,6 @@ qx.Class.define("smart.demo.Application",
         
         this.table = new smart.Tree(column_names, custom);
         this.table.setMetaColumnCounts([ -1 ]);
-        
-        // Switch how nodes are retrieved by the selection manager
-        this.table.getSelectionManager().setGetNodeFunction(
-          function(col, row)
-          {
-            // This function is called in the context of the data model
-            return this.getAlternateRowArray().nodeArr[row][col];
-          });
       }
 
       // Every row will have a unique Message Id so we'll use that column as
@@ -414,16 +410,16 @@ qx.Class.define("smart.demo.Application",
       // Add some static data
       tm.setData(this.testData());
 
-      // Enable indexed selection by Order Number. This will cause the model
+      // Enable indexed selection by MessageId. This will cause the model
       // to automatically preserve the selection across table modifications,
-      // using the Order Number index.
+      // using the MessageId index.
       //
       // This means we don't have to do any work to maintain the selection
       // when we add or delete rows, or re-sort the table.
       var sm = this.table.getSelectionModel();
       sm.setSelectionMode(
         qx.ui.table.selection.Model.MULTIPLE_INTERVAL_SELECTION);
-      tm.indexedSelection(this.columns["Order Number"], sm);
+      tm.indexedSelection(this.columns["MessageId"], sm);
 
       // Set up column renderers
       var tcm = this.table.getTableColumnModel();

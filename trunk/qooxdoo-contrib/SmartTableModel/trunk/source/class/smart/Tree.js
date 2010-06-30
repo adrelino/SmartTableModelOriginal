@@ -20,15 +20,62 @@
 
 qx.Class.define("smart.Tree",
 {
-  extend : qx.ui.treevirtual.TreeVirtual,
+  extend : qx.ui.table.Table,
   
+  construct : function(dm, custom)
+  {
+    if (! custom)
+    {
+      custom = {};
+    }
+
+/*
+    if (! custom.selectionManager)
+    {
+      custom.selectionManager =
+        function(obj)
+        {
+          return new qx.ui.treevirtual.SelectionManager(obj);
+        };
+    }
+*/
+      
+    if (! custom.dataRowRenderer)
+    {
+      custom.dataRowRenderer =
+        new qx.ui.treevirtual.SimpleTreeDataRowRenderer();
+    }
+    
+    this.base(arguments, dm, custom);
+  },
+
   members :
   {
+    /**
+     * Return the data model for this tree.
+     *
+     * @return {qx.ui.table.ITableModel} The data model.
+     */
+    getDataModel : function()
+    {
+      return this.getTableModel();
+    }
+
+
+/*
+    _onSelectionChanged : function(evt)
+    {
+      this.warn("_onSelectionChanged");
+
+      this.base(arguments, evt);
+    },
+
     // overridden
     _calculateSelectedNodes : function()
     {
       // We have no selected nodes in this implementation
       return [];
     }    
+*/
   }
 });

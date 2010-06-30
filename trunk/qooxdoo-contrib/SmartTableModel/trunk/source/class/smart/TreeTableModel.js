@@ -250,9 +250,43 @@ qx.Class.define("smart.TreeTableModel",
     },
     
 
-    //
-    // Methods required for compatibility with SimpleTreeDataModel
-    //
+    /**
+     * Returns the node object specific to a currently visible row. In this
+     * simple tree data model, that's the same as retrieving the value of the
+     * tree column of the specified row.
+     *
+     * @throws {Error}
+     *   Thrown if the row index is out of bounds.
+     *   
+     * @param rowIndex {Integer}
+     *   The index of the row.
+     *   
+     * @param view {Integer ?}
+     *   Which model view this operation should apply to. If this parameter is
+     *   omitted, it defaults to the value of the {@link #view} property.
+     *
+     * @return {Object|null}
+     *   The node object associated with the specified row.
+     */
+    getNode : function(rowIndex, view)
+    {
+      if (view === undefined)
+      {
+        view = this.getView();
+      }
+      
+      // Retrieve the node array associated with the primary or alternate row
+      // array.
+      var nodeArr = this.getRowArray(view).nodeArr;
+      if (! nodeArr)
+      {
+        // It hasn't been built yet.
+        return null;
+      }
+
+      // Give 'em what they came for.
+      return nodeArr[rowIndex];
+    },
 
     /*
      * Set the tree object for which this data model is used.
@@ -430,14 +464,9 @@ qx.Class.define("smart.TreeTableModel",
       }
     },
     
-    /**
-     * Clear all selections in the data model.  This method does not clear
-     * selections displayed in the widget, and is intended for internal use,
-     * not by users of this class.
-     */
     _clearSelections : function()
     {
-      // do nothing in this implementation
+      this.__clearSelection();
     }
   }
 });
