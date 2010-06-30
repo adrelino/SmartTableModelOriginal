@@ -28,23 +28,6 @@ qx.Class.define("smart.demo.Application",
 {
   extend : qx.application.Standalone,
 
-  statics :
-  {
-    toDate : function(dateStr)
-    {
-      var format = /(\d+)-(\d+)-(\d+)\s(\d+):(\d+)/;
-      var result = dateStr.match(format);
-      if (result)
-      {
-        var seconds = Math.floor(Math.random() * 60);
-        return new Date(result[1], result[2], result[3],
-                        result[4], result[5], seconds);
-      }
-      
-      throw new Error("Could not parse date " + dateStr);
-    }
-  },
-
   members: 
   {
     table: null,
@@ -77,6 +60,136 @@ qx.Class.define("smart.demo.Application",
         filter: function (rowdata)
         {
           return !rowdata[this.columns["Read?"]];
+        }
+      },
+      "Grouped By Date":
+      {
+        // When rows are about to be inserted, add date header rows
+        preInsertRows : function(existingRows, newRows, dm)
+        {
+          // Obtain a date formatting object
+          var dateFormat = new qx.util.format.DateFormat("dd MMM yyyy");
+
+          // The number of milliseconds in a day
+          var msDay = 1000 * 60 * 60 * 24;
+
+          // Get the date today
+          var todayObj = new timezonedate.TimezoneDate();
+
+          // We want the beginning of the day. Set the time to midnight.
+          todayObj.setHours(0, 0, 0, 0);
+          
+          var today = todayObj.getTime();
+          
+          // Calculate the day value for yesterday too
+          var yesterday = today - msDay;
+
+          // Get (or create) a map of used dates (unique to the day).
+          var uniqueDates = dm.getUserData("GroupByDate");
+
+          // If we hadn't previously created it...
+          if (! uniqueDates)
+          {
+            // ... then create it now.
+            uniqueDates = {};
+            dm.setUserData("GroupByDate", uniqueDates);
+          }
+
+          // We'll be adding header rows: one for each unique day in the new
+          // Date field of the new rows. Add them all, once, at the end.
+          var headerRows = [];
+
+          // For each new row...
+          for (var i = 0; i < newRows.length; i++)
+          {
+            // Get the Date field from this row, converted to ms since epoch
+            var columnDate = 
+              newRows[i][this.columns["Date"]].getTime();
+            
+            // Truncate to only contain the date (no time), converted to UTC
+            var dayOfDateObj = new timezonedate.TimezoneDate(columnDate);
+            dayOfDateObj.setHours(0, 0, 0, 0);
+            var dayOfDate = dayOfDateObj.getTime();
+
+/*
+            this.debug("Looking at " + 
+                       newRows[i][this.columns["Date"]] + ": " +
+                       "date=" + dayOfDateObj + ", " +
+                       "unique=" + uniqueDates[dayOfDate]);
+*/
+            
+            // Do we already have entries for this day?
+            if (uniqueDates[dayOfDate] === undefined)
+            {
+              // Nope. Add a header row
+              var headerRow = [ "", "", "", "", "", { header : true } ];
+              
+              if (dayOfDate == today)
+              {
+                headerRow[this.columns["Subject"]] = "Today";
+              }
+              else if (dayOfDate == yesterday)
+              {
+                headerRow[this.columns["Subject"]] = "Yesterday";
+              }
+              else
+              {
+                headerRow[this.columns["Subject"]] =
+                  dateFormat.format(dayOfDateObj);
+              }
+
+              // Save the date object too, for sorting on
+              headerRow[this.columns["Date"]] = dayOfDateObj;
+              
+              // Save this new header row to insert later
+this.debug("Adding new header " + headerRow[this.columns["Subject"]]);
+              headerRows.push(headerRow);
+              
+              // This date is now available
+              uniqueDates[dayOfDate] = columnDate;
+            }
+          }
+          
+          // Now that we've created all of the header rows, append them to the
+          // newRows array.
+          for (i = 0; i < headerRows.length; i++)
+          {
+            newRows.push(headerRows[i]);
+          }
+        },
+
+        // Sort by date, with header rows sorted before non-header rows
+        sort : function(row1, row2)
+        {
+          // Retrieve the two date values and convert to ms since epoch
+          var date1 = row1[this.columns["Date"]].getTime();
+          var date2 = row2[this.columns["Date"]].getTime();
+
+          // Earlier dates sort before later dates
+          if (date1 != date2)
+          {
+            return (date1 < date2 ? -1 : 1);
+          }
+          
+          // Ensure that header rows sort before non-header rows
+          var extra1 = row1[this.columns["Extra"]];
+          var extra2 = row2[this.columns["Extra"]];
+          
+          // There won't be two rows with the same date that are both header
+          // rows, so we can exclude testing for that.
+          if (extra1 && extra1.header)
+          {
+            // row1 is a header, so row1 sorts earlier than row2
+            return -1;
+          }
+          if (extra2 && extra2.header)
+          {
+            // row2 is a header, so row1 sorts later than row2
+            return 1;
+          }
+          
+          // The two dates are the same (and neither is a header)
+          return 0;
         }
       }
     },
@@ -139,7 +252,8 @@ qx.Class.define("smart.demo.Application",
         {
           advanced = 
             {
-              fSort : viewData.sort
+              fSort          : viewData.sort,
+              fPreInsertRows : viewData.preInsertRows
             };
         }
         tm.newView(this.views[view].filter, this, advanced);
@@ -222,7 +336,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "[qooxdoo-devel] break on error in Firebug in func gecko()",
                  "Werner Thie",
-                 smart.demo.Application.toDate("2010-06-09 11:53"),
+                 new timezonedate.TimezoneDate("2010-06-09T11:53"),
                  1,
                  true,
                  {
@@ -232,7 +346,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "Re: [qooxdoo-devel] break on error in Firebug in func gecko()",
                  "thron7",
-                 smart.demo.Application.toDate("2010-06-09 14:28"),
+                 new timezonedate.TimezoneDate("2010-06-09T14:28"),
                  2,
                  true,
                  {
@@ -242,7 +356,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "Re: [qooxdoo-devel] break on error in Firebug in func gecko()",
                  "Derrell Lipman",
-                 smart.demo.Application.toDate("2010-06-09 14:32"),
+                 new timezonedate.TimezoneDate("2010-06-09T14:32"),
                  3,
                  false,
                  {
@@ -252,7 +366,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "[qooxdoo-devel] scrolling experience",
                  "Tobias Oetiker",
-                 smart.demo.Application.toDate("2010-06-08 07:56"),
+                 new timezonedate.TimezoneDate("2010-06-08T07:56"),
                  4,
                  true,
                  {
@@ -262,7 +376,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "Re: [qooxdoo-devel] scrolling experience",
                  "MartinWitteman",
-                 smart.demo.Application.toDate("2010-06-09 12:53"),
+                 new timezonedate.TimezoneDate("2010-06-09T12:53"),
                  5,
                  true,
                  {
@@ -272,7 +386,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "Re: [qooxdoo-devel] scrolling experience",
                  "Tobias Oetiker",
-                 smart.demo.Application.toDate("2010-06-09 13:42"),
+                 new timezonedate.TimezoneDate("2010-06-09T13:42"),
                  6,
                  true,
                  {
@@ -282,7 +396,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "Re: [qooxdoo-devel] scrolling experience",
                  "MartinWitteman",
-                 smart.demo.Application.toDate("2010-06-09 14:28"),
+                 new timezonedate.TimezoneDate("2010-06-09T14:28"),
                  7,
                  false,
                  {
@@ -292,7 +406,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "[qooxdoo-devel] How to patch static methods/members? (qooxdoo 1.2-pre)",
                  "Peter Schneider",
-                 smart.demo.Application.toDate("2010-06-09 09:18"),
+                 new timezonedate.TimezoneDate("2010-06-09T09:18"),
                  8,
                  false,
                  {
@@ -302,7 +416,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "Re: [qooxdoo-devel] How to patch static methods/members? (qooxdoo 1.2-pre)",
                  "Derrell Lipman",
-                 smart.demo.Application.toDate("2010-06-09 13:59"),
+                 new timezonedate.TimezoneDate("2010-06-09T13:59"),
                  9,
                  false,
                  {
@@ -312,7 +426,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "Re: [qooxdoo-devel] How to patch static methods/members? (qooxdoo 1.2-pre)",
                  "Peter Schneider",
-                 smart.demo.Application.toDate("2010-06-09 13:59"),
+                 new timezonedate.TimezoneDate("2010-06-09T13:59"),
                  10,
                  false,
                  {
@@ -322,7 +436,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "Re: [qooxdoo-devel] How to patch static methods/members? (qooxdoo 1.2-pre)",
                  "Derrell LIpman",
-                 smart.demo.Application.toDate("2010-06-09 14:04"),
+                 new timezonedate.TimezoneDate("2010-06-09T14:04"),
                  11,
                  false,
                  {
@@ -332,7 +446,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "[qooxdoo-devel] mo better qooxlisp",
                  "Kenneth Tilton",
-                 smart.demo.Application.toDate("2010-06-05 23:40"),
+                 new timezonedate.TimezoneDate("2010-06-05T23:40"),
                  12,
                  true,
                  {
@@ -342,7 +456,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "Re: [qooxdoo-devel][Lisp] mo better qooxlisp",
                  "Ken Tilton",
-                 smart.demo.Application.toDate("2010-06-09 13:11"),
+                 new timezonedate.TimezoneDate("2010-06-09T13:11"),
                  13,
                  true,
                  {
@@ -352,7 +466,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "Re: [qooxdoo-devel][Lisp] mo better qooxlisp",
                  "Joubert Nel",
-                 smart.demo.Application.toDate("2010-06-09 13:24"),
+                 new timezonedate.TimezoneDate("2010-06-09T13:24"),
                  14,
                  true,
                  {
@@ -362,7 +476,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "Re: [qooxdoo-devel][Lisp] mo better qooxlisp",
                  "Kenneth Tilton",
-                 smart.demo.Application.toDate("2010-06-09 13:40"),
+                 new timezonedate.TimezoneDate("2010-06-09T13:40"),
                  15,
                  true,
                  {
@@ -372,7 +486,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "[qooxdoo-devel] a jqPlot qooxdoo integration widget contrib",
                  "Tobias Oetiker",
-                 smart.demo.Application.toDate("2010-06-08 10:59"),
+                 new timezonedate.TimezoneDate("2010-06-08T10:59"),
                  16,
                  false,
                  {
@@ -382,7 +496,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "Re: [qooxdoo-devel] a jqPlot qooxdoo integration widget contrib",
                  "panyasan",
-                 smart.demo.Application.toDate("2010-06-09 07:48"),
+                 new timezonedate.TimezoneDate("2010-06-09T07:48"),
                  17,
                  false,
                  {
@@ -392,7 +506,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "Re: [qooxdoo-devel] a jqPlot qooxdoo integration widget contrib",
                  "Tobi Oetiker",
-                 smart.demo.Application.toDate("2010-06-09 13:24"),
+                 new timezonedate.TimezoneDate("2010-06-09T13:24"),
                  18,
                  false,
                  {
@@ -402,7 +516,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "[qooxdoo-devel] Extending application to native window (my favorite bug)",
                  "panyasan",
-                 smart.demo.Application.toDate("2010-06-09 07:48"),
+                 new timezonedate.TimezoneDate("2010-06-09T07:48"),
                  19,
                  false,
                  {
@@ -412,7 +526,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
                  "thron7",
-                 smart.demo.Application.toDate("2010-06-09 11:42"),
+                 new timezonedate.TimezoneDate("2010-06-09T11:42"),
                  20,
                  false,
                  {
@@ -422,7 +536,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
                  "panyasan",
-                 smart.demo.Application.toDate("2010-06-09 12:16"),
+                 new timezonedate.TimezoneDate("2010-06-09T12:16"),
                  21,
                  false,
                  {
@@ -432,7 +546,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
                  "hkalyoncu",
-                 smart.demo.Application.toDate("2010-06-09 12:57"),
+                 new timezonedate.TimezoneDate("2010-06-09T12:57"),
                  22,
                  false,
                  {
@@ -442,7 +556,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
                  "Fritz Zaucker",
-                 smart.demo.Application.toDate("2010-06-09 12:58"),
+                 new timezonedate.TimezoneDate("2010-06-09T12:58"),
                  23,
                  false,
                  {
@@ -452,7 +566,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
                  "panyasan",
-                 smart.demo.Application.toDate("2010-06-09 13:05"),
+                 new timezonedate.TimezoneDate("2010-06-09T13:05"),
                  24,
                  false,
                  {
@@ -462,7 +576,7 @@ qx.Class.define("smart.demo.Application",
                [
                  "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
                  "thron7",
-                 smart.demo.Application.toDate("2010-06-09 13:18"),
+                 new timezonedate.TimezoneDate("2010-06-09T13:18"),
                  25,
                  false,
                  {
