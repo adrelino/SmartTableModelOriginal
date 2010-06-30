@@ -57,7 +57,7 @@ qx.Class.define("smart.demo.TreeWithHeaderRowsCellRenderer",
       if (! nodeArr)
       {
         this.__defaultCellRenderer.createDataCellHtml(cellInfo, htmlArr);
-        return;
+        return false;           // allow further cells in row to be rendered
       }
 
       // Obtain the node data for this cell
@@ -81,7 +81,8 @@ qx.Class.define("smart.demo.TreeWithHeaderRowsCellRenderer",
                                this._insetY),
         this._getCellStyle(cellInfo),
         (node.bHeader
-         ? 'border-right:0px;width:100%;background-color:cyan;' 
+         ? 'border-right:0px;width:100%;' +
+           'background-color:darkgray;color:white;font-weight:bold;' 
          : ''),
         '" ',
         this._getCellAttributes(cellInfo),
