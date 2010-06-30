@@ -57,27 +57,43 @@ qx.Class.define("smart.demo.Application", {
 		},
 		"Unprocessed Orders": {
 		    // All rows with false in the Processed column are visible
-		    filters: function (rowdata) { return !rowdata[this.columns["Processed?"]]; }
+		    filter: function (rowdata)
+                    {
+                      return !rowdata[this.columns["Processed?"]];
+                    }
 		},
 		"Processed but not Shipped": {
 		    // Processed == true; Shipped == false:
-		    filters: [
-			function (rowdata) { return rowdata[this.columns["Processed?"]]; },
-			function (rowdata) { return !rowdata[this.columns["Shipped?"]]; }
-		    ],
-		    conjunction: 'and'
+		    filter: function (rowdata)
+                    {
+                      return (rowdata[this.columns["Processed?"]] &&
+                              !rowdata[this.columns["Shipped?"]]);
+                    },
+                    // advanced feature: custom sort (not really compatible
+                    // with the sort by header click)
+                    sort: function(row1, row2)
+                    {
+                      var Simple = qx.ui.table.model.Simple;
+                      var comparator = qx.lang.Function.bind(
+                        function(s1, s2)
+                        {
+                          return (s1 < s2) ? 1 : ((s1 == s2) ? 0 : -1);
+                        },
+                        this);
+                      return comparator(row1[this.columns["Customer Name"]],
+                                        row2[this.columns["Customer Name"]]);
+                    }
 		},
 		"Open Orders Placed in the Past Four Hours": {
-		    filters: [ 
-			function (rowdata) {
-			    return !rowdata[this.columns["Processed?"]];
-			},
-			function (rowdata) {
-			    var now = (new Date()).getTime();
-			    return (now - rowdata[this.columns["Order Date"]].getTime() <= 4*60*60*1000);
+		    filter:
+			function (rowdata)
+                        {
+		          var now = (new Date()).getTime();
+                          var time = 
+                            rowdata[this.columns["Order Date"]].getTime();
+			  return (!rowdata[this.columns["Processed?"]] &&
+			          now - time <= 4*60*60*1000);
 			}
-		    ],
-		    conjunction: 'and'
 		}
 	    },
 
@@ -141,10 +157,16 @@ qx.Class.define("smart.demo.Application", {
 			this.views[view].id = 0;
 			continue;
 		    }
-		    this.views[view].id = ++id;
-		    tm.addView(this.views[view].filters,
-			       this,
-			       this.views[view].conjunction);
+                    var viewData = this.views[view];
+		    viewData.id = ++id;
+                    var advanced = null;
+                    if (viewData.sort) {
+                      advanced = 
+                        {
+                          fSort : viewData.sort
+                        };
+                    }
+                    tm.newView(this.views[view].filter, this, advanced);
 		}
 		tm.setView(this.views["All Orders"].id);
 
@@ -311,7 +333,7 @@ qx.Class.define("smart.demo.Application", {
 
 	    fz_test: function () {
 		var tableModelSmart = new smart.Smart();
-		tableModelSmart.addView(function (rowdata) { return true; }, this);
+		tableModelSmart.newView(qx.lang.Function.returnTrue);
 		tableModelSmart.setColumns([ "Location", "Team" ]);
 
 		var tableModelSimple = new qx.ui.table.model.Simple();
@@ -354,7 +376,7 @@ qx.Class.define("smart.demo.Application", {
 
 	    fz_test_2: function () {
 		var tableModelSmart = new smart.Smart();
-		tableModelSmart.addView(function (rowdata) { return true; }, this);
+		tableModelSmart.newView(qx.lang.Function.returnTrue);
 		tableModelSmart.setColumns([ "Location", "Team" ]);
 
 		var tableModelSimple = new qx.ui.table.model.Simple();
@@ -418,7 +440,7 @@ qx.Class.define("smart.demo.Application", {
 		var tableSmart  = new qx.ui.table.Table(tableModelSmart);
 		var tableSimple = new qx.ui.table.Table(tableModelSimple);
 
-		tableModelSmart.addView(
+		tableModelSmart.newView(
 		    function (rowdata) {
 			var loc = rowdata[0];
 			this.debug('loc='+loc);
@@ -426,7 +448,7 @@ qx.Class.define("smart.demo.Application", {
 			this.debug('ret='+ret);
 			return ret;
 		    },
-		    this, null);
+		    this);
 
 
 		// Create buttons
