@@ -340,7 +340,7 @@ qx.Class.define("smart.demo.Application",
       //
 
       // Create the table model
-      var tm = new smart.TreeTableModel();
+      var tm = new smart.model.TreeTable();
 
       // Set the columns
       var key, column_names = [];
@@ -361,7 +361,7 @@ qx.Class.define("smart.demo.Application",
       }
       else if (true)
       {
-        this.table = new smart.Tree(tm);
+        this.table = new smart.addons.Tree(tm);
       }
       else
       {
@@ -370,7 +370,7 @@ qx.Class.define("smart.demo.Application",
             dataModel : tm
           };
         
-        this.table = new smart.Tree(column_names, custom);
+        this.table = new smart.addons.Tree(column_names, custom);
         this.table.setMetaColumnCounts([ -1 ]);
       }
 

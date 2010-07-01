@@ -18,7 +18,7 @@
 
 ************************************************************************ */
 
-qx.Class.define("smart.Tree",
+qx.Class.define("smart.addons.Tree",
 {
   extend : qx.ui.table.Table,
   

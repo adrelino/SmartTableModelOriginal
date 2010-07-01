@@ -18,9 +18,9 @@
 
 ************************************************************************ */
 
-qx.Class.define("smart.TreeTableModel",
+qx.Class.define("smart.model.TreeTable",
 {
-  extend : smart.TableModel,
+  extend : smart.model.Default,
   
   // We'll make use of the tree-building code from treevirtual
   include : qx.ui.treevirtual.MTreePrimitive,

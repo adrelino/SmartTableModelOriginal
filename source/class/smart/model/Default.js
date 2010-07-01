@@ -51,7 +51,7 @@
  * selected view, determine by the view property. This makes the API mostly
  * backwards-compatible with the Simple model.
  */
-qx.Class.define("smart.TableModel",
+qx.Class.define("smart.model.Default",
 {
   extend : qx.ui.table.model.Simple,
 
