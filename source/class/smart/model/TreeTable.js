@@ -247,6 +247,9 @@ qx.Class.define("smart.model.TreeTable",
       // Begin in-order traversal of the tree from the root to regenerate a
       // displayable rowArr.
       this.__inorder(nodeArr, srcRowArr, destNodeArr, destRowArr, 0, 1);
+      
+      // Recreate the index for this view
+      this._updateAssociationMaps(view);
     },
     
 

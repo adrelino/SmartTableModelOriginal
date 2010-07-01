@@ -110,11 +110,11 @@ qx.Class.define("smart.model.Default",
     /*
      * Indexed selection.
      *
-     * The selection stack holds the IDs for all the selected
+     * The selected rows array holds the IDs for all the selected
      * rows. These IDs are the table values for the selected rows in
      * the index column.
      */
-    this.__selection_stack = [];
+    this.__selectedRows = null;
     this.__selectionIndex = -1;
     this.__selectionModel = null;
 
@@ -412,23 +412,25 @@ qx.Class.define("smart.model.Default",
       // Add this view
       this.__views.push(viewData);
 
+      //
       // Establish the filters
+      //
 
-        // Save indexed selection
-        if (this.getView() == view)
-        {
-          this.__saveSelection();
-        }
+      // Save indexed selection
+      if (this.getView() == view)
+      {
+        this.__saveSelection();
+      }
 
 
-        this.__evalFilters(view);
+      this.__evalFilters(view);
 
-        // Restore indexed selection -- select the corresponding rows in the
-        // new view
-        if (this.getView() == view)
-        {
-          this.__restoreSelection();
-        }
+      // Restore indexed selection -- select the corresponding rows in the
+      // new view
+      if (this.getView() == view)
+      {
+        this.__restoreSelection();
+      }
 
       return view;
     },
@@ -519,7 +521,7 @@ qx.Class.define("smart.model.Default",
       this.__indices[columnIndex] = A;
 
       // Now generate the new index from scratch
-      this.__updateAssociationMaps(/*view:*/ undefined, /*index:*/ columnIndex);
+      this._updateAssociationMaps(/*view:*/ undefined, /*index:*/ columnIndex);
     },
 
     /**
@@ -578,8 +580,7 @@ qx.Class.define("smart.model.Default",
     {
       this.__selectionIndex = columnIndex;
       this.__selectionModel = selectionModel;
-      this.__selection_stack = [];
-      this.__selection_stack_depth = 0;
+      this.__selectedRows = [];
       this.__suppress_indexed_selection = false;
     },
 
@@ -600,7 +601,7 @@ qx.Class.define("smart.model.Default",
 
     // Save the list of indices corresponding to the set of selected rows
     // (push).
-    __saveSelection: function(view, skip)
+    __saveSelection: function(view)
     {
       if (view === undefined)
       {
@@ -614,19 +615,18 @@ qx.Class.define("smart.model.Default",
         return;
       }
 
-      this.__selection_stack[this.__selection_stack_depth] = [];
-      var selected = this.__selection_stack[this.__selection_stack_depth++];
+      // Initialize the array containing the selected rows.
+      this.__selectedRows = [];
 
-      var sm = this.__selectionModel;
+      // Iterate through the selected rows. For each selected row...
       this.__selectionModel.iterateSelection(
         function(row)
         {
-          var id = this.getValue(this.__selectionIndex, row, view);
-          if (skip && id in skip)
-          {
-            return;
-          }
-          selected.push(id);
+          // Get the value from the indexed column, and push it to the
+          // selected rows array.
+          this.__selectedRows.push(this.getValue(this.__selectionIndex,
+                                                 row,
+                                                 view));
         },
         this);
     },
@@ -641,7 +641,7 @@ qx.Class.define("smart.model.Default",
     __restoreSelection: function(view)
     {
       // If there's no indexed selection, there's nothing to restore.
-      if (this.selection_stack_depth < 1 ||
+      if (this.__selectedRows == null ||
           ! this.__selectionModel ||
           this.__selectionIndex < 0 ||
           this.__selectionIndex >= this.getColumnCount())
@@ -649,27 +649,38 @@ qx.Class.define("smart.model.Default",
         return;
       }
 
+      // Get a local reference ot the selection model
       var sm = this.__selectionModel;
-      sm.setBatchMode(true);	// queue events for selection changes
-
+      
+      // Queue events for selection changes
+      sm.setBatchMode(true);
+      
+      // If we're not supressing the selection...
       if (!this.__suppress_indexed_selection)
       {
+        // ... then clear the current selection
         this.__clearSelection();
-      }
-      var selected = this.__selection_stack[--this.__selection_stack_depth];
+      
+        // Get a local reference to the list of selected rows
+        var selected = this.__selectedRows;
 
-      if (!this.__suppress_indexed_selection)
-      {
+        // For each selected row...
         for (var i = 0; i < selected.length; i++)
         {
+          // Find that row in the specified view
           var row = this.locate(this.__selectionIndex, selected[i], view);
+          
+          // If it was found...
           if (row !== undefined)
           {
+            // ... then add it to the selection in the selection model
             sm.addSelectionInterval(row, row);
           }
         }
       }
-      sm.setBatchMode(false);	// send events for selection changes
+      
+      // Send selection events now.
+      sm.setBatchMode(false);
     },
 
     //
@@ -1110,7 +1121,7 @@ qx.Class.define("smart.model.Default",
       // remove the entries for the deleted rows from the row association map.
       if (updateAssociationMaps)
       {
-        this.__updateAssociationMaps(view);
+        this._updateAssociationMaps(view);
       }
     },
 
@@ -1131,7 +1142,7 @@ qx.Class.define("smart.model.Default",
 
       if (updateAssociationMaps)
       {
-        this.__updateAssociationMapsAfterPush(view, rows, prior_len);
+        this._updateAssociationMapsAfterPush(view, rows, prior_len);
       }
     },
 
@@ -1152,7 +1163,7 @@ qx.Class.define("smart.model.Default",
       // the row indices from scratch.
       if (updateAssociationMaps)
       {
-        this.__updateAssociationMaps(view);
+        this._updateAssociationMaps(view);
       }
     },
 
@@ -1395,7 +1406,7 @@ qx.Class.define("smart.model.Default",
 
         if (updateAssociationMaps)
         {
-          this.__updateAssociationMaps(view);
+          this._updateAssociationMaps(view);
         }
       }
 
@@ -2008,7 +2019,7 @@ qx.Class.define("smart.model.Default",
           this.__backingstore[v] = [];
           this.__backingstore[v].__name = "Primary backing store";
         }
-        this.__updateAssociationMaps();
+        this._updateAssociationMaps();
         this.__notifyDataChanged();
       }
     },
@@ -2125,7 +2136,7 @@ qx.Class.define("smart.model.Default",
       // Recompute the association map for this view from scratch
       if (updateAssociationMaps)
       {
-        this.__updateAssociationMaps(view);
+        this._updateAssociationMaps(view);
       }
 
       // If the displayed view was altered, notify listeners.
@@ -2181,7 +2192,7 @@ qx.Class.define("smart.model.Default",
      * This also updates all user indices. In user indices, the keys are the
      * values in a particular column.
      */
-    __updateAssociationMaps: function(view, index)
+    _updateAssociationMaps: function(view, index)
     {
       for (var v = 0; v < this.__views.length; v++)
       {
@@ -2231,13 +2242,13 @@ qx.Class.define("smart.model.Default",
     },
 
     /**
-     * This is a more efficient version of __updateAssociationMaps that we can
+     * This is a more efficient version of _updateAssociationMaps that we can
      * use when we've pushed new rows onto the end of a view. In this case, we
      * don't have to recompute the whole association map from scratch; we just
      * have to add keys for the new rows; we know than none of the
      * pre-existing keys will have changed.
      */
-    __updateAssociationMapsAfterPush: function(view, pushed_rows, prior_len)
+    _updateAssociationMapsAfterPush: function(view, pushed_rows, prior_len)
     {
       var assoc = this.__getAssoc(view);
       var value = prior_len;
@@ -2433,7 +2444,7 @@ qx.Class.define("smart.model.Default",
       }
 
       // Rebuild all association maps from scratch
-      this.__updateAssociationMaps();
+      this._updateAssociationMaps();
 
       // Restore indexed selection -- select the corresponding rows in the new
       // view
@@ -2593,6 +2604,6 @@ qx.Class.define("smart.model.Default",
     this.__views = null;
     this.__backingstore = null;
     this.__indices = null;
-    this.__selection_stack = null;
+    this.__selectedRows = null;
   }
 });
