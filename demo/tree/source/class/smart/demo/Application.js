@@ -191,10 +191,6 @@ qx.Class.define("smart.demo.Application",
           var node;
           var nodeArr;
           
-          // Clear the alternate row array of any old data. We don't want it
-          // used internally until we're ready for it.
-          dm.setAlternateRowArray(view, null);
-
           // (Re-)Create the node array for this view
           nodeArr = dm.initTree(view);
           
@@ -214,7 +210,8 @@ qx.Class.define("smart.demo.Application",
             if (extra && extra.header)
             {
               // Yup. It becomes the new parent.
-              parentNodeId = dm.addBranch(nodeArr, 
+              parentNodeId = dm.addBranch(view,
+                                          nodeArr, 
                                           i,
                                           0,
                                           row[this.columns["Subject"]],
@@ -225,17 +222,14 @@ qx.Class.define("smart.demo.Application",
             else
             {
               // It's not a header row. Create a leaf node for it.
-              dm.addLeaf(nodeArr,
+              dm.addLeaf(view,
+                         nodeArr,
                          i,
                          parentNodeId,
                          row[this.columns["Subject"]]);
             }
           }
           
-          // The tree will be created in the alternate row array, which is
-          // used in preference to the primary row array, to render the table.
-          dm.setAlternateRowArray(view, []);
-
           // Build the table from the tree data now!
           dm.buildTableFromTree(view);
         }
@@ -264,10 +258,6 @@ qx.Class.define("smart.demo.Application",
           var node;
           var nodeArr;
           
-          // Clear the alternate row array of any old data. We don't want it
-          // used internally until we're ready for it.
-          dm.setAlternateRowArray(view, null);
-
           // (Re-)Create the node array for this view
           nodeArr = dm.initTree(view);
           
@@ -283,8 +273,8 @@ qx.Class.define("smart.demo.Application",
 
             // Find the message which is this message's parent
             // Is this message in reply to some previous one?
-            var inReplyTo = row[this.columns["InReplyTo"]] || 0;
-            if (inReplyTo)
+            var inReplyTo = row[this.columns["InReplyTo"]];
+            if (inReplyTo !== null && inReplyTo !== undefined)
             {
               // Yup. Locate the parent message
               parentRowId = dm.locate(this.columns["MessageId"],
@@ -302,7 +292,8 @@ qx.Class.define("smart.demo.Application",
             }
 
             // Add this node to the tree
-            dm.addBranch(nodeArr,
+            dm.addBranch(view,
+                         nodeArr,
                          i,
                          parentNodeId,
                          row[this.columns["Subject"]],
@@ -311,10 +302,6 @@ qx.Class.define("smart.demo.Application",
                          false);
           }
           
-          // Our tree will be created in the alternate row array, which is
-          // used in preference to the primary row array, to render the table.
-          dm.setAlternateRowArray(view, []);
-
           // Build the table from the tree data now!
           dm.buildTableFromTree(view);
         }
