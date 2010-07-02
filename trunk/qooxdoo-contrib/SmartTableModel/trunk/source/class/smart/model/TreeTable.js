@@ -50,6 +50,9 @@ qx.Class.define("smart.model.TreeTable",
     /**
      * Add a branch to the tree.
      *
+     * @param view {Integer}
+     *   Which model view this operation should apply to.
+     *
      * @param nodeArr {Array}
      *   The array to which new nodes are to be added
      *
@@ -81,7 +84,8 @@ qx.Class.define("smart.model.TreeTable",
      * @return {Integer}
      *   The node id of the newly-added branch.
      */
-    addBranch : function(nodeArr,
+    addBranch : function(view,
+                         nodeArr,
                          rowIndex,
                          parentNodeId,
                          label,
@@ -113,12 +117,18 @@ qx.Class.define("smart.model.TreeTable",
         node.__bHeader = true;
       }
       
+      // The tree data is corrupted now. Flush it.
+      this.setAlternateRowArray(view, null);
+      
       return nodeId;
     },
 
 
     /**
      * Add a leaf to the tree.
+     *
+     * @param view {Integer}
+     *   Which model view this operation should apply to.
      *
      * @param nodeArr {Array}
      *   The array to which new nodes are to be added
@@ -142,7 +152,8 @@ qx.Class.define("smart.model.TreeTable",
      *
      * @return {Integer} The node id of the newly-added leaf.
      */
-    addLeaf : function(nodeArr,
+    addLeaf : function(view,
+                       nodeArr,
                        rowIndex,
                        parentNodeId,
                        label,
@@ -161,6 +172,9 @@ qx.Class.define("smart.model.TreeTable",
       // Save the row index
       nodeArr[nodeId].__rowIndex = rowIndex;
       
+      // The tree data is corrupted now. Flush it.
+      this.setAlternateRowArray(view, null);
+
       return nodeId;
     },
     
@@ -234,18 +248,28 @@ qx.Class.define("smart.model.TreeTable",
 
     buildTableFromTree : function(view)
     {
+      // The tree will be created in the alternate row array, which is
+      // used in preference to the primary row array, to render the table.
+      this.setAlternateRowArray(view, []);
+
+      // Get the source row array containing the nodes to be built into a tree
       var srcRowArr = this.getRowArray(view, false);
+      
+      // Get the node array associated with the source row array.
       var nodeArr = srcRowArr.nodeArr;
+      
+      // Get the destination row array in which the rows will be added in tree
+      // order.
       var destRowArr = this.getRowArray(view, true);
 
-      // Remove everything from the row array
+      // Truncate the destination row array
       destRowArr.length = 0;
       
       // Create an array to hold the nodes added to the destination row array
       var destNodeArr = destRowArr.nodeArr = [];
       
       // Begin in-order traversal of the tree from the root to regenerate a
-      // displayable rowArr.
+      // displayable row array
       this.__inorder(nodeArr, srcRowArr, destNodeArr, destRowArr, 0, 1);
       
       // Recreate the index for this view
