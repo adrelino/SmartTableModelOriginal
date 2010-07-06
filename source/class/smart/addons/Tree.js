@@ -29,16 +29,14 @@ qx.Class.define("smart.addons.Tree",
       custom = {};
     }
 
-/*
     if (! custom.selectionManager)
     {
       custom.selectionManager =
         function(obj)
         {
-          return new qx.ui.treevirtual.SelectionManager(obj);
+          return new smart.selection.Manager(obj);
         };
     }
-*/
       
     if (! custom.dataRowRenderer)
     {
@@ -47,6 +45,19 @@ qx.Class.define("smart.addons.Tree",
     }
     
     this.base(arguments, dm, custom);
+  },
+
+  properties :
+  {
+    /**
+     * Whether a click on the open/close button should also cause selection of
+     * the row.
+     */
+    openCloseClickSelectsRow :
+    {
+      check : "Boolean",
+      init : false
+    }
   },
 
   members :
@@ -60,22 +71,5 @@ qx.Class.define("smart.addons.Tree",
     {
       return this.getTableModel();
     }
-
-
-/*
-    _onSelectionChanged : function(evt)
-    {
-      this.warn("_onSelectionChanged");
-
-      this.base(arguments, evt);
-    },
-
-    // overridden
-    _calculateSelectedNodes : function()
-    {
-      // We have no selected nodes in this implementation
-      return [];
-    }    
-*/
   }
 });
