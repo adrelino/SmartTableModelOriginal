@@ -29,6 +29,15 @@ qx.Class.define("smart.model.TreeTable",
   {
     __tree : null,
 
+    // overridden
+    init : function(table)
+    {
+      // Save the table (tree) object
+      this.__tree = table;
+
+      this.base(arguments, table);
+    },
+
     /**
      * Create an initial node list for a new tree.
      *
@@ -108,7 +117,7 @@ qx.Class.define("smart.model.TreeTable",
       var node = nodeArr[nodeId];
 
       // Save the row index
-      node.__rowIndex = rowIndex;
+      node.rowIndex = rowIndex;
 
       // If this is a header node...
       if (bHeader)
@@ -170,7 +179,7 @@ qx.Class.define("smart.model.TreeTable",
           icon);
 
       // Save the row index
-      nodeArr[nodeId].__rowIndex = rowIndex;
+      nodeArr[nodeId].rowIndex = rowIndex;
       
       // The tree data is corrupted now. Flush it.
       this.setAlternateRowArray(view, null);
@@ -214,7 +223,7 @@ qx.Class.define("smart.model.TreeTable",
 
         // Get our parent.
         var parent = srcNodeArr[child.parentNodeId];
-
+        
         // For each parent node, determine if it is a last child
         while (parent.nodeId)
         {
@@ -224,7 +233,7 @@ qx.Class.define("smart.model.TreeTable",
         }
 
         // Retrieve the source row index
-        var srcRowIndex = child.__rowIndex;
+        var srcRowIndex = child.rowIndex;
 
         // Add this child to the row data array
         destRowArr.push(srcRowArr[srcRowIndex]);
@@ -266,7 +275,8 @@ qx.Class.define("smart.model.TreeTable",
       destRowArr.length = 0;
       
       // Create an array to hold the nodes added to the destination row array
-      var destNodeArr = destRowArr.nodeArr = [];
+      var destNodeArr = [ ];
+      destRowArr.nodeArr = destNodeArr;
       
       // Begin in-order traversal of the tree from the root to regenerate a
       // displayable row array
@@ -274,6 +284,9 @@ qx.Class.define("smart.model.TreeTable",
       
       // Recreate the index for this view
       this._updateAssociationMaps(view);
+      
+      // Update the tree
+      this.__tree.updateContent();
     },
     
 
@@ -304,7 +317,8 @@ qx.Class.define("smart.model.TreeTable",
       
       // Retrieve the node array associated with the primary or alternate row
       // array.
-      var nodeArr = this.getRowArray(view).nodeArr;
+      var rowArr =  this.getRowArray(view);
+      var nodeArr = rowArr.nodeArr;
       if (! nodeArr)
       {
         // It hasn't been built yet.
@@ -421,6 +435,13 @@ qx.Class.define("smart.model.TreeTable",
       {
         throw new Error("Expected node object or node id");
       }
+      
+      if (view === undefined)
+      {
+        view = this.getView();
+      }
+      
+this.debug("Set state of node " + nodeId);
 
       for (var attribute in attributes)
       {
@@ -470,9 +491,9 @@ qx.Class.define("smart.model.TreeTable",
 
           // Event handler may have modified the opened state.  Check before
           // toggling.
-          if (!node.bHideOpenClose)
+          if (! node.bHideOpenClose)
           {
-            // It's still boolean.  Toggle the state
+            // It's still shown.  Toggle the state
             node.bOpened = !node.bOpened;
           }
 
