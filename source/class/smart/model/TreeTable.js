@@ -255,6 +255,28 @@ qx.Class.define("smart.model.TreeTable",
       }
     },
 
+    /**
+     * Get the row in which a particular node is currently displayed. By
+     * definition, this means retrieving from the alternate row array.
+     *
+     * @param nodeId {Integer}
+     *   The node id for which the row is to be determined
+     *
+     * @return {Integer}
+     *   The row number where the specified node is currently displayed.
+     */
+    getRowFromNodeId : function(nodeId)
+    {
+      // Get the currently active row array
+      var rowArr = this.getRowArray(null, true);
+      
+      // Retrieve from it the node array
+      var nodeArr = rowArr.nodeArr;
+      
+      // Give 'em what they came for.
+      return nodeArr[nodeId].__rowIndex;
+    },
+
     buildTableFromTree : function(view)
     {
       // The tree will be created in the alternate row array, which is
@@ -441,8 +463,6 @@ qx.Class.define("smart.model.TreeTable",
         view = this.getView();
       }
       
-this.debug("Set state of node " + nodeId);
-
       for (var attribute in attributes)
       {
         // Do any attribute-specific processing
