@@ -49,36 +49,10 @@ qx.Class.define("smart.headerrenderer.HeaderCellWithMenu",
       switch(id)
       {
         case "sort-icon":
-<<<<<<< HEAD:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/headerrenderer/HeaderCellWithMenu.js
-          var iconPath = "icon/22/apps/internet-web-browser.png";
-          control = new qx.ui.form.MenuControl("", iconPath);
-          control.setIconPosition("right");
-          control._excludeChildControl("label");
-          var doc = this.getRoot();
-          doc.add(control,
-          {
-            right : 10,
-            top  : 50
-          });
-
-          var menu = new qx.ui.menu.Menu();
-          var view1 = new qx.ui.menu.Control("View 1");
-          var view2 = new qx.ui.menu.Control("View 2");
-          var view3 = new qx.ui.menu.Control("View 3");
-          menu.add(view1);
-          menu.add(view2);
-          menu.add(view3);
-
-
-          control.resetEnabled();
-          control.setMenu(menu);
-
-=======
         var iconPath = "icon/22/apps/internet-web-browser.png";
           control = new qx.ui.form.MenuButton("View", iconPath);
           control.setIconPosition("right");
 //          control._excludeChildControl("label");
->>>>>>> SmartTree:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/headerrenderer/HeaderCellWithMenu.js
           this._add(control, {row: 0, column: 2});
           break;
       }

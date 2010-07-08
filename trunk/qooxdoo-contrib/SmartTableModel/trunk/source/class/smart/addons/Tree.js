@@ -55,13 +55,6 @@ qx.Class.define("smart.addons.Tree",
     // Get the column model
     var columnModel = this.getTableColumnModel();
     
-<<<<<<< HEAD:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/addons/Tree.js
-    // From the column model, set the header cell renderer to be used
-    columnModel.self(arguments).DEFAULT_HEADER_RENDERER =
-      smart.headerrenderer.MultiView;
-    
-=======
->>>>>>> SmartTree:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/addons/Tree.js
     // Get notified when the scroller wants to apply its normal sorting
     var scrollerArr = this._getPaneScrollerArr();
     for (var i = 0; i < scrollerArr.length; i++) 
@@ -97,12 +90,8 @@ qx.Class.define("smart.addons.Tree",
      */
     viewSelection :
     {
-<<<<<<< HEAD:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/addons/Tree.js
-      init : null
-=======
       init : null,
       apply : "_applyViewSelection"
->>>>>>> SmartTree:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/addons/Tree.js
     }
   },
 
@@ -125,8 +114,6 @@ qx.Class.define("smart.addons.Tree",
     },
 
 
-<<<<<<< HEAD:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/addons/Tree.js
-=======
     // property apply method
     _applyViewSelection : function(value, old)
     {
@@ -207,7 +194,6 @@ qx.Class.define("smart.addons.Tree",
     },
 
 
->>>>>>> SmartTree:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/addons/Tree.js
     /**
      * Event handler. Called when a key was pressed.
      *
@@ -410,8 +396,6 @@ qx.Class.define("smart.addons.Tree",
       // Prevent the default "sort" action
       e.preventDefault();
     }    
-<<<<<<< HEAD:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/addons/Tree.js
-=======
   },
   
   defer : function()
@@ -419,7 +403,6 @@ qx.Class.define("smart.addons.Tree",
     // Ensure that we use our MultiView header renderer instead of the default
     qx.ui.table.columnmodel.Basic.DEFAULT_HEADER_RENDERER =
       smart.headerrenderer.MultiView;
->>>>>>> SmartTree:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/addons/Tree.js
   }
 });
 
