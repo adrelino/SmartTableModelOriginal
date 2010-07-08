@@ -55,10 +55,13 @@ qx.Class.define("smart.addons.Tree",
     // Get the column model
     var columnModel = this.getTableColumnModel();
     
+<<<<<<< HEAD:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/addons/Tree.js
     // From the column model, set the header cell renderer to be used
     columnModel.self(arguments).DEFAULT_HEADER_RENDERER =
       smart.headerrenderer.MultiView;
     
+=======
+>>>>>>> SmartTree:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/addons/Tree.js
     // Get notified when the scroller wants to apply its normal sorting
     var scrollerArr = this._getPaneScrollerArr();
     for (var i = 0; i < scrollerArr.length; i++) 
@@ -94,7 +97,12 @@ qx.Class.define("smart.addons.Tree",
      */
     viewSelection :
     {
+<<<<<<< HEAD:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/addons/Tree.js
       init : null
+=======
+      init : null,
+      apply : "_applyViewSelection"
+>>>>>>> SmartTree:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/addons/Tree.js
     }
   },
 
@@ -117,6 +125,89 @@ qx.Class.define("smart.addons.Tree",
     },
 
 
+<<<<<<< HEAD:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/addons/Tree.js
+=======
+    // property apply method
+    _applyViewSelection : function(value, old)
+    {
+      // If the view selection map is being removed...
+      if (! value)
+      {
+        // ... then use an empty map
+        value = { };
+      }
+      
+      // Get the table colum model so we can retrieve the header cell widgets
+      var tcm = this.getTableColumnModel();
+
+      // For each column...
+      for (var col in value)
+      {
+        // Get the header cell renderer for this column
+        var hcr = tcm.getHeaderCellRenderer(col - 0);
+
+        // If the header has been rendered...
+        var widget = hcr.getWidget();
+        if (widget)
+        {
+          // Retrieve the sort-icon widget
+          var menuButton = widget._showChildControl("sort-icon");
+
+          // Create a menu for this column's view selections
+          var menu = new qx.ui.menu.Menu();
+
+          // For each view to be available from this column...
+          for (var i = 0; i < value[col].length; i++)
+          {
+            // ... create its menu
+            var viewData = value[col][i];
+            var viewButton = new qx.ui.menu.Button(viewData.caption);
+            
+            // Save the view id in the view button's user data
+            viewButton.setUserData("view", viewData.view);
+            
+            // Get called when this menu button is selected
+            viewButton.addListener(
+              "execute",
+              function(e)
+              {
+                // Retrieve the saved view id
+                var view = e.getTarget().getUserData("view");
+                
+                // Use that view now.
+                this.getDataModel().setView(view);
+              },
+              this);
+            
+            // Add the button to the menu
+            menu.add(viewButton);
+          }
+          
+          // Establish this new menu
+          menuButton.resetEnabled();
+          menuButton.setMenu(menu);
+        }
+        else
+        {
+          // The header hasn't yet been rendered. Re-call ourself shortly.
+          var timer = qx.util.TimerManager.getInstance();
+          timer.start(function(userData, timerId)
+          {
+            this._applyViewSelection(value, old);
+          },
+          0,
+          this,
+          null,
+          100);
+          
+          // Get outta here!
+          return;
+        }
+      }
+    },
+
+
+>>>>>>> SmartTree:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/addons/Tree.js
     /**
      * Event handler. Called when a key was pressed.
      *
@@ -319,5 +410,16 @@ qx.Class.define("smart.addons.Tree",
       // Prevent the default "sort" action
       e.preventDefault();
     }    
+<<<<<<< HEAD:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/addons/Tree.js
+=======
+  },
+  
+  defer : function()
+  {
+    // Ensure that we use our MultiView header renderer instead of the default
+    qx.ui.table.columnmodel.Basic.DEFAULT_HEADER_RENDERER =
+      smart.headerrenderer.MultiView;
+>>>>>>> SmartTree:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/addons/Tree.js
   }
 });
+
