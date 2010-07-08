@@ -22,6 +22,7 @@ qx.Class.define("smart.addons.Tree",
 {
   extend : qx.ui.table.Table,
   
+  // overridden
   construct : function(dm, custom)
   {
     if (! custom)
@@ -29,8 +30,10 @@ qx.Class.define("smart.addons.Tree",
       custom = {};
     }
 
+    // Unless the user provides a special selection manager...
     if (! custom.selectionManager)
     {
+      // ... use our own.
       custom.selectionManager =
         function(obj)
         {
@@ -38,13 +41,31 @@ qx.Class.define("smart.addons.Tree",
         };
     }
       
+    // Unless the user provides a special row renderer...
     if (! custom.dataRowRenderer)
     {
+      // ... use the one from TreeVirtual.
       custom.dataRowRenderer =
         new qx.ui.treevirtual.SimpleTreeDataRowRenderer();
     }
     
+    // Call the superclass
     this.base(arguments, dm, custom);
+    
+    // Get the column model
+    var columnModel = this.getTableColumnModel();
+    
+    // From the column model, set the header cell renderer to be used
+    columnModel.self(arguments).DEFAULT_HEADER_RENDERER =
+      smart.headerrenderer.MultiView;
+    
+    // Get notified when the scroller wants to apply its normal sorting
+    var scrollerArr = this._getPaneScrollerArr();
+    for (var i = 0; i < scrollerArr.length; i++) 
+    {
+      scrollerArr[i].addListener("beforeSort", this.__onHeaderClick, this);
+    }
+    
   },
 
   properties :
@@ -57,6 +78,23 @@ qx.Class.define("smart.addons.Tree",
     {
       check : "Boolean",
       init : false
+    },
+    
+    /**
+     * A map containing information on which columns show which view
+     * selections.
+     *
+     * The map contains column numbers for keys.
+     *
+     * The value of each entry in the map is an array of maps, each
+     * corresponding to a menu entry for selection of a view. These maps each
+     * contain the following members: 'view' contains the view number; 'caption'
+     * is what to display in the menu; 'icon' is the resolved path of an icon to
+     * display, corresponding to that menu item selection.
+     */
+    viewSelection :
+    {
+      init : null
     }
   },
 
@@ -73,6 +111,12 @@ qx.Class.define("smart.addons.Tree",
     },
 
 
+    handleHeaderClick : function(col)
+    {
+      
+    },
+
+
     /**
      * Event handler. Called when a key was pressed.
      *
@@ -81,13 +125,10 @@ qx.Class.define("smart.addons.Tree",
      *
      * @param evt {Map}
      *   The event.
-     *
-     * @return {void}
      */
     _onKeyPress : function(evt)
     {
       var dm;
-
 
       if (! this.getEnabled())
       {
@@ -257,6 +298,26 @@ qx.Class.define("smart.addons.Tree",
         // It's not one of ours.  Let our superclass handle this event
         this.base(arguments, evt);
       }
-    }
+    },
+    
+    /**
+     * Event Handler. Called when the header is clicked. This is a private
+     * method that simply ensures that the default action (sorting as a normal
+     * table does) is prevented. It then calls the overridable method
+     * handleHeaderClick() method.
+     *
+     * @param e {qx.event.type.Data}
+     *   The data event. The data provided is an object containing a member
+     *   'column' indicating in which colunn the header was clicked, and a
+     *   member 'ascending' which is irrelevant in this tree.
+     */
+    __onHeaderClick : function(e)
+    {
+      var eventData = e.getData();
+      this.handleHeaderClick(eventData.column);
+      
+      // Prevent the default "sort" action
+      e.preventDefault();
+    }    
   }
 });

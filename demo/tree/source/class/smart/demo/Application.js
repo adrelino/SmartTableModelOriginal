@@ -57,10 +57,18 @@ qx.Class.define("smart.demo.Application",
       },
       "Unread": 
       {
-	// All rows with false in the Processed column are visible
+	// All rows with false in the Read column are visible
         filter: function (rowdata)
         {
           return !rowdata[this.columns["Read?"]];
+        }
+      },
+      "Read": 
+      {
+	// All rows with true in the Read column are visible
+        filter: function (rowdata)
+        {
+          return rowdata[this.columns["Read?"]];
         }
       },
       "Grouped By Date":
@@ -342,24 +350,7 @@ qx.Class.define("smart.demo.Application",
       tm.setColumns(column_names);
 
       // Create a table using the model
-      if (false)
-      {
-        this.table = new qx.ui.table.Table(tm);
-      }
-      else if (true)
-      {
-        this.table = new smart.addons.Tree(tm);
-      }
-      else
-      {
-        var custom =
-          {
-            dataModel : tm
-          };
-        
-        this.table = new smart.addons.Tree(column_names, custom);
-        this.table.setMetaColumnCounts([ -1 ]);
-      }
+      this.table = new smart.addons.Tree(tm);
 
       // Every row will have a unique Message Id so we'll use that column as
       // an index. The index will allow us to instantly find any message in the
@@ -430,6 +421,44 @@ qx.Class.define("smart.demo.Application",
       // Disable the focus row. We only want selection highlighting.
       this.table.setShowCellFocusIndicator(false);
       this.table.highlightFocusedRow(false);
+
+      // We need to tell the tree how to let the user select views
+      var viewSelection = { };
+      
+      viewSelection[this.columns["Subject"]] =
+        [
+          {
+            view    : this.views["Threaded"].id,
+            caption : "Threaded",
+            icon    : "grouped-ascending"
+          }
+        ];
+
+      viewSelection[this.columns["Date"]] =
+        [
+          {
+            view    : this.views["Grouped By Date"].id,
+            caption : "Grouped by Date, ascending",
+            icon    : "grouped-ascending"
+          }
+        ];
+
+      viewSelection[this.columns["Read?"]] =
+        [
+          {
+            view    : this.views["Unread"].id,
+            caption : "Display only unread messages",
+            icon    : "unread-only"
+          },
+          {
+            view    : this.views["Read"].id,
+            caption : "Display only read messages",
+            icon    : "read-only"
+          }
+        ];
+
+      
+      this.table.setViewSelection(viewSelection);
 
       // Create a view control so the user can select which view to, er...,
       // view.
