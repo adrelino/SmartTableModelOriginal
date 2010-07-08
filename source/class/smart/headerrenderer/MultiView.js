@@ -46,16 +46,40 @@ qx.Class.define("smart.headerrenderer.MultiView",
 
   members :
   {
+<<<<<<< HEAD:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/headerrenderer/MultiView.js
+=======
+    __widget : null,
+
+    /**
+     * Get the header cell widget that contains the menu
+     *
+     * @return {smart.headerrenderer.HeaderCellWithMenu}
+     */
+    getWidget : function()
+    {
+      return this.__widget;
+    },
+
+>>>>>>> SmartTree:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/headerrenderer/MultiView.js
     // overridden
     createHeaderCell : function(cellInfo)
     {
       // Instantiate the header cell which includes a menu
+<<<<<<< HEAD:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/headerrenderer/MultiView.js
       var widget = new smart.headerrenderer.HeaderCellWithMenu();
       
       // Update it now, using the given cell information
       this.updateHeaderCell(cellInfo, widget);
 
       return widget;
+=======
+      this.__widget = new smart.headerrenderer.HeaderCellWithMenu();
+      
+      // Update it now, using the given cell information
+      this.updateHeaderCell(cellInfo, this.__widget);
+
+      return this.__widget;
+>>>>>>> SmartTree:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/headerrenderer/MultiView.js
     },
 
 

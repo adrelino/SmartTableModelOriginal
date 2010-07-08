@@ -49,6 +49,7 @@ qx.Class.define("smart.headerrenderer.HeaderCellWithMenu",
       switch(id)
       {
         case "sort-icon":
+<<<<<<< HEAD:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/headerrenderer/HeaderCellWithMenu.js
           var iconPath = "icon/22/apps/internet-web-browser.png";
           control = new qx.ui.form.MenuControl("", iconPath);
           control.setIconPosition("right");
@@ -72,6 +73,12 @@ qx.Class.define("smart.headerrenderer.HeaderCellWithMenu",
           control.resetEnabled();
           control.setMenu(menu);
 
+=======
+        var iconPath = "icon/22/apps/internet-web-browser.png";
+          control = new qx.ui.form.MenuButton("View", iconPath);
+          control.setIconPosition("right");
+//          control._excludeChildControl("label");
+>>>>>>> SmartTree:trunk/qooxdoo-contrib/SmartTableModel/trunk/source/class/smart/headerrenderer/HeaderCellWithMenu.js
           this._add(control, {row: 0, column: 2});
           break;
       }
