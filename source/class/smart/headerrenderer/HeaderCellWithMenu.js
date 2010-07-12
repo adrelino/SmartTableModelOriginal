@@ -58,8 +58,12 @@ qx.Class.define("smart.headerrenderer.HeaderCellWithMenu",
       {
         case "menu-view-button":
         var iconPath = "icon/22/apps/internet-web-browser.png";
-          control = new qx.ui.form.MenuButton("View", iconPath);
-          control.setIconPosition("right");
+        control = new qx.ui.form.MenuButton("View", iconPath);
+        control.set(
+          {
+            iconPosition : "right",
+            appearance   : ""
+          });
 //          control._excludeChildControl("label");
           this._add(control, {row: 0, column: 2});
           break;
