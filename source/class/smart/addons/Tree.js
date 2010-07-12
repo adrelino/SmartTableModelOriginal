@@ -110,9 +110,74 @@ qx.Class.define("smart.addons.Tree",
 
     handleHeaderClick : function(col)
     {
+      // Get the table colum model so we can retrieve the header cell widgets
+      var tcm = this.getTableColumnModel();
+
+      // Get the header cell renderer for this column
+      var hcr = tcm.getHeaderCellRenderer(col);
+
+      // Get the header cell widget for this column
+      var widget = hcr.getWidget(col);
       
+      // Simulate a press on the view button, if it's visible
+      var menuButton = widget.getChildControl("menu-view-button");
+      if (menuButton.isVisible())
+      {
+        menuButton.open();
+      }
     },
 
+
+    _createViewButtonMenu : function(col, widget)
+    {
+      // Get the view selection data
+      var viewSelectionData = this.getViewSelection();
+
+      // If there's no view selection, or none for this column...
+      if (! viewSelectionData || ! viewSelectionData[col])
+      {
+        // ... then there's nothing to do yet
+        widget._excludeChildControl("menu-view-button");
+        return;
+      }
+      
+      // Retrieve the view button widget
+      var menuButton = widget._showChildControl("menu-view-button");
+
+      // Create a menu for this column's view selections
+      var menu = new qx.ui.menu.Menu();
+
+      // For each view to be available from this column...
+      for (var i = 0; i < viewSelectionData[col].length; i++)
+      {
+        // ... create its menu
+        var viewData = viewSelectionData[col][i];
+        var viewButton = new qx.ui.menu.Button(viewData.caption);
+
+        // Save the view id in the view button's user data
+        viewButton.setUserData("view", viewData.view);
+
+        // Get called when this menu button is selected
+        viewButton.addListener(
+          "execute",
+          function(e)
+          {
+            // Retrieve the saved view id
+            var view = e.getTarget().getUserData("view");
+
+            // Use that view now.
+            this.getDataModel().setView(view);
+          },
+          this);
+
+        // Add the button to the menu
+        menu.add(viewButton);
+      }
+
+      // Establish this new menu
+      menuButton.resetEnabled();
+      menuButton.setMenu(menu);
+    },
 
     // property apply method
     _applyViewSelection : function(value, old)
@@ -130,66 +195,22 @@ qx.Class.define("smart.addons.Tree",
       // For each column...
       for (var col in value)
       {
+        // Convert the string col to integer column
+        var column = col - 0;
+
         // Get the header cell renderer for this column
-        var hcr = tcm.getHeaderCellRenderer(col - 0);
+        var hcr = tcm.getHeaderCellRenderer(column);
 
-        // If the header has been rendered...
-        var widget = hcr.getWidget();
-        if (widget)
+        // If the header cell widget has not been created...
+        var widget = hcr.getWidget(column);
+        if (! widget)
         {
-          // Retrieve the sort-icon widget
-          var menuButton = widget._showChildControl("sort-icon");
-
-          // Create a menu for this column's view selections
-          var menu = new qx.ui.menu.Menu();
-
-          // For each view to be available from this column...
-          for (var i = 0; i < value[col].length; i++)
-          {
-            // ... create its menu
-            var viewData = value[col][i];
-            var viewButton = new qx.ui.menu.Button(viewData.caption);
-            
-            // Save the view id in the view button's user data
-            viewButton.setUserData("view", viewData.view);
-            
-            // Get called when this menu button is selected
-            viewButton.addListener(
-              "execute",
-              function(e)
-              {
-                // Retrieve the saved view id
-                var view = e.getTarget().getUserData("view");
-                
-                // Use that view now.
-                this.getDataModel().setView(view);
-              },
-              this);
-            
-            // Add the button to the menu
-            menu.add(viewButton);
-          }
-          
-          // Establish this new menu
-          menuButton.resetEnabled();
-          menuButton.setMenu(menu);
-        }
-        else
-        {
-          // The header hasn't yet been rendered. Re-call ourself shortly.
-          var timer = qx.util.TimerManager.getInstance();
-          timer.start(function(userData, timerId)
-          {
-            this._applyViewSelection(value, old);
-          },
-          0,
-          this,
-          null,
-          100);
-          
-          // Get outta here!
+          // ... then we'll get called again when it is.
           return;
         }
+
+        // Create the view selection button menu
+        this._createViewButtonMenu(col, widget);
       }
     },
 

@@ -29,18 +29,26 @@ qx.Class.define("smart.headerrenderer.HeaderCellWithMenu",
 {
   extend : qx.ui.table.headerrenderer.HeaderCell,
   
+  construct : function()
+  {
+    this.base(arguments);
+    
+    // Show the view control
+    this._showChildControl("menu-view-button");
+    this.getLayout().setColumnFlex(2, 0);
+  },
+
+  properties :
+  {
+    /** The icon URL of the sorting indicator */
+    viewButton :
+    {
+      init : null
+    }
+  },
+
   members :
   {
-    // overridden
-    _applySortIcon : function(value, old)
-    {
-      if (value) {
-        this._showChildControl("sort-icon").setSource(value);
-      } else {
-        this._excludeChildControl("sort-icon");
-      }
-    },
-    
     // overridden
     _createChildControlImpl : function(id)
     {
@@ -48,7 +56,7 @@ qx.Class.define("smart.headerrenderer.HeaderCellWithMenu",
 
       switch(id)
       {
-        case "sort-icon":
+        case "menu-view-button":
         var iconPath = "icon/22/apps/internet-web-browser.png";
           control = new qx.ui.form.MenuButton("View", iconPath);
           control.setIconPosition("right");

@@ -53,21 +53,39 @@ qx.Class.define("smart.headerrenderer.MultiView",
      *
      * @return {smart.headerrenderer.HeaderCellWithMenu}
      */
-    getWidget : function()
+    getWidget : function(col)
     {
-      return this.__widget;
+      if (! this.__widget)
+      {
+        return null;
+      }
+      
+      return this.__widget[col];
     },
 
     // overridden
     createHeaderCell : function(cellInfo)
     {
       // Instantiate the header cell which includes a menu
-      this.__widget = new smart.headerrenderer.HeaderCellWithMenu();
+      var widget = new smart.headerrenderer.HeaderCellWithMenu();
       
       // Update it now, using the given cell information
-      this.updateHeaderCell(cellInfo, this.__widget);
+      this.updateHeaderCell(cellInfo, widget);
 
-      return this.__widget;
+      // Is this the first widget we've generated?
+      if (! this.__widget)
+      {
+        // Yup. Create an array for holding the widgets
+        this.__widget = [];
+      }
+      
+      // Save this widget in association with its column
+      this.__widget[cellInfo.col] = widget;
+      
+      // Create the view button menu for this column
+      cellInfo.table._createViewButtonMenu(cellInfo.col, widget);
+
+      return widget;
     },
 
 
@@ -101,14 +119,6 @@ qx.Class.define("smart.headerrenderer.MultiView",
           widgetToolTip.setLabel(this.getToolTip());
         }
       }
-
-      cellInfo.sorted ?
-        cellWidget.addState(This.STATE_SORTED) :
-        cellWidget.removeState(This.STATE_SORTED);
-
-      cellInfo.sortedAscending ?
-        cellWidget.addState(This.STATE_SORTED_ASCENDING) :
-        cellWidget.removeState(This.STATE_SORTED_ASCENDING);
     }
   }
 });
