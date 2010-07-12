@@ -383,7 +383,6 @@ qx.Class.define("smart.demo.Application",
         }
         tm.newView(this.views[view].filter, this, advanced);
       }
-      tm.setView(this.views["All Messages"].id);
 
       // Add some static data
       tm.setData(this.testData());
@@ -430,6 +429,7 @@ qx.Class.define("smart.demo.Application",
           {
             view    : this.views["Threaded"].id,
             caption : "Threaded",
+            abbrev  : "Threaded",
             icon    : "grouped-ascending"
           }
         ];
@@ -439,6 +439,7 @@ qx.Class.define("smart.demo.Application",
           {
             view    : this.views["Grouped By Date"].id,
             caption : "Grouped by Date, ascending",
+            abbrev  : "Date",
             icon    : "grouped-ascending"
           }
         ];
@@ -448,49 +449,26 @@ qx.Class.define("smart.demo.Application",
           {
             view    : this.views["Unread"].id,
             caption : "Display only unread messages",
+            abbrev  : "Unread",
             icon    : "unread-only"
           },
           {
             view    : this.views["Read"].id,
             caption : "Display only read messages",
+            abbrev  : "Read",
             icon    : "read-only"
           }
         ];
 
-      
+      // Provide the list of view selections to the table
       this.table.setViewSelection(viewSelection);
-
-      // Create a view control so the user can select which view to, er...,
-      // view.
-      id = 0;
-      var view_control = new qx.ui.form.SelectBox();
-      view_control.set({ width: 300 });
-      var items = [];
-      for (view in this.views) 
-      {
-	var info = this.views[view];
-	var li = new qx.ui.form.ListItem(view);
-	items[info.id] = li;
-	li.setUserData("id", info.id);
-      }
-      for (var i = 0; i < items.length; i++)
-      {
-	view_control.add(items[i]);
-      }
-
-      // Listen to the changeSelection event and update the view accordingly.
-      view_control.addListener("changeSelection",
-                               function (e) 
-                               {
-				 var listitem = e.getData()[0];
-				 var id = listitem.getUserData("id");
-				 this.setView(id);
-			       },
-			       this.table.getTableModel());
+      
+      // Select the initial view
+      var viewAbbrev = viewSelection[this.columns["Subject"]][0].abbrev;
+      this.table.setViewAbbreviation(viewAbbrev);
 
       // Add widgets to root canvas
       var root = this.getRoot();
-      root.add(view_control, { left: 100, top: 10});
       root.add(this.table, { edge : 10, top : 40 });
     },
 	    

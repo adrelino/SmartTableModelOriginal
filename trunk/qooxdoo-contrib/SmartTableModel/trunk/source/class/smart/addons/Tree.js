@@ -76,6 +76,14 @@ qx.Class.define("smart.addons.Tree",
       init : false
     },
     
+    /** The abbreviation of the view to be shown */
+    viewAbbreviation :
+    {
+      check : "String",
+      init  : null,
+      apply : "_applyView"
+    },
+
     /**
      * A map containing information on which columns show which view
      * selections.
@@ -92,11 +100,19 @@ qx.Class.define("smart.addons.Tree",
     {
       init : null,
       apply : "_applyViewSelection"
+    },
+    
+    showAbbreviations :
+    {
+      check : "Boolean",
+      init  : true
     }
   },
 
   members :
   {
+    __viewAbbreviations : null,
+
     /**
      * Return the data model for this tree.
      *
@@ -127,6 +143,46 @@ qx.Class.define("smart.addons.Tree",
       }
     },
 
+    // property apply method
+    _applyView : function(value, old)
+    {
+      // Is the null view selected?
+      if (value === null)
+      {
+        // Yup. Select the primal view
+        this.getDataModel().setView(0);
+      }
+
+      // Retrieve view data from the abbreviations map, given the abbreviation
+      var viewData = this.__viewAbbreviationMap[value];
+
+      // Determine if we're displaying view abbreviations
+      var bShowAbbreviations = this.getShowAbbreviations();
+
+      // For each column...
+      for (col in this.__columnViewButtonMap)
+      {
+        // Retrieve the menu button for this column
+        var menuButton = this.__columnViewButtonMap[col];
+        
+        // If this is the column containing the view being selected...
+        if (viewData && col == viewData.__col)
+        {
+          // ... then set the menu button label and icon to the appropriate one
+          menuButton.setLabel(bShowAbbreviations ? viewData.abbrev : "");
+          menuButton.setIcon(viewData.icon);
+
+          // Switch to this view
+          this.getDataModel().setView(viewData.view);
+        }
+        else
+        {
+          // Otherwise, make the menu button invisible (but still active)
+          menuButton.setLabel("");
+          menuButton.setIcon("");
+        }
+      }
+    },
 
     _createViewButtonMenu : function(col, widget)
     {
@@ -152,10 +208,16 @@ qx.Class.define("smart.addons.Tree",
       {
         // ... create its menu
         var viewData = viewSelectionData[col][i];
+        
+        // Validate some input
+        this.assertNumber(viewData.view);
+        this.assertString(viewData.abbrev);
+
+        // Create the menu button
         var viewButton = new qx.ui.menu.Button(viewData.caption);
 
-        // Save the view id in the view button's user data
-        viewButton.setUserData("view", viewData.view);
+        // Save the viewData object in the view button's user data
+        viewButton.setUserData("viewData", viewData);
 
         // Get called when this menu button is selected
         viewButton.addListener(
@@ -163,20 +225,33 @@ qx.Class.define("smart.addons.Tree",
           function(e)
           {
             // Retrieve the saved view id
-            var view = e.getTarget().getUserData("view");
-
+            var viewButton = e.getTarget();
+            var viewData = viewButton.getUserData("viewData");
+            
             // Use that view now.
-            this.getDataModel().setView(view);
+            this.setViewAbbreviation(viewData.abbrev);
           },
           this);
 
         // Add the button to the menu
         menu.add(viewButton);
+        
+        // Add this view to the abbreviation map: maps to view id
+        this.__viewAbbreviationMap[viewData.abbrev] = viewData;
+
+        // Also keep track of the menu button corresponding to a column number
+        this.__columnViewButtonMap[col] = menuButton;
+
+        // Save the column number locally in this view data
+        viewData.__col = col;
       }
 
       // Establish this new menu
       menuButton.resetEnabled();
       menuButton.setMenu(menu);
+      
+      // Switch to the selected view
+      this._applyView(this.getViewAbbreviation());
     },
 
     // property apply method
@@ -189,7 +264,13 @@ qx.Class.define("smart.addons.Tree",
         value = { };
       }
       
-      // Get the table colum model so we can retrieve the header cell widgets
+      // (Re-)Create the view abbreviation map
+      this.__viewAbbreviationMap = { };
+      
+      // Ditto for the column button map
+      this.__columnViewButtonMap = { };
+      
+      // Get the table column model so we can retrieve the header cell widgets
       var tcm = this.getTableColumnModel();
 
       // For each column...
