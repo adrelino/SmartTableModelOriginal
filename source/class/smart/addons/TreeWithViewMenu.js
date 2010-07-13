@@ -18,7 +18,7 @@
 
 ************************************************************************ */
 
-qx.Class.define("smart.addons.Tree",
+qx.Class.define("smart.addons.TreeWithViewMenu",
 {
   extend : smart.addons.AbstractTree,
   
