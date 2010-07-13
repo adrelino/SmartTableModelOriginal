@@ -41,10 +41,10 @@ qx.Class.define("smart.addons.TreeWithViewMenu",
      * @param col {Integer}
      *   The column number in which the header was clicked
      *
-     * @param e {qx.event.type.Event}
+     * @param clickEvent {qx.event.type.Event}
      *   The header click event
      */
-    handleHeaderClick : function(col, e)
+    handleHeaderClick : function(col, clickEvent)
     {
       // Get the table colum model so we can retrieve the header cell widgets
       var tcm = this.getTableColumnModel();
@@ -61,8 +61,8 @@ qx.Class.define("smart.addons.TreeWithViewMenu",
       if (menuButton.isVisible())
       {
         var menu = menuButton.getMenu();
-//        menu.setOpener(widget);
-        menu.open();
+        menu.setOpener(widget);
+        menu.openAtMouse(clickEvent);
       }
     },
 
