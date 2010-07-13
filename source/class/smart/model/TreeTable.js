@@ -18,6 +18,9 @@
 
 ************************************************************************ */
 
+/**
+ * The data model for a smart tree/table
+ */
 qx.Class.define("smart.model.TreeTable",
 {
   extend : smart.model.Default,
@@ -187,74 +190,6 @@ qx.Class.define("smart.model.TreeTable",
       return nodeId;
     },
     
-    __inorder : function(srcNodeArr, srcRowArr, 
-                         destNodeArr, destRowArr,
-                         nodeId, level)
-    {
-      var child = null;
-      var childNodeId;
-      var node = srcNodeArr[nodeId];
-      
-      // For each child of the specified node...
-      var numChildren = srcNodeArr[nodeId].children.length;
-
-      for (var i=0; i<numChildren; i++)
-      {
-        // Determine the node id of this child
-        childNodeId = srcNodeArr[nodeId].children[i];
-
-        // Get the child node
-        child = srcNodeArr[childNodeId];
-
-        // Skip deleted nodes
-        if (child == null)
-        {
-          continue;
-        }
-
-        // (Re-)assign this node's level
-        child.level = level;
-
-        // Determine if we're the first child of our parent
-        child.bFirstChild = (i == 0);
-
-        // Determine if we're the last child of our parent
-        child.lastChild = [ i == numChildren - 1 ];
-
-        // Get our parent.
-        var parent = srcNodeArr[child.parentNodeId];
-        
-        // For each parent node, determine if it is a last child
-        while (parent.nodeId)
-        {
-          var bLast = parent.lastChild[parent.lastChild.length - 1];
-          child.lastChild.unshift(bLast);
-          parent = srcNodeArr[parent.parentNodeId];
-        }
-
-        // Retrieve the source row index
-        var srcRowIndex = child.rowIndex;
-
-        // Add this child to the row data array
-        destRowArr.push(srcRowArr[srcRowIndex]);
-        
-        // Reassign to store the destination row index
-        child.__rowIndex = destRowArr.length;
-
-        // Track the node that goes with it, too
-        destNodeArr.push(child);
-
-        // If this child is opened, ...
-        if (child.bOpened)
-        {
-          // ... then add its children too.
-          this.__inorder(srcNodeArr, srcRowArr, 
-                         destNodeArr, destRowArr,
-                         childNodeId, level + 1);
-        }
-      }
-    },
-
     /**
      * Get the row in which a particular node is currently displayed. By
      * definition, this means retrieving from the alternate row array.
@@ -277,6 +212,14 @@ qx.Class.define("smart.model.TreeTable",
       return nodeArr[nodeId].__rowIndex;
     },
 
+    
+    /**
+     * Once the user code has built a tree, this method is called to build an
+     * ordered set of rows, a table, in the appearance of the tree.
+     *
+     * @param view {Integer}
+     *   The view number
+     */
     buildTableFromTree : function(view)
     {
       // The tree will be created in the alternate row array, which is
@@ -416,6 +359,13 @@ qx.Class.define("smart.model.TreeTable",
       throw new Error("The tree is always in column 0 in this implementation.");
     },
     
+    /**
+     * The column containing a tree. This is just for backward compatibility
+     * with TreeVirtual.
+     *
+     * @return {Integer}
+     *   Returns 0, always.
+     */
     getTreeColumn : function()
     {
       return 0;
@@ -532,9 +482,97 @@ qx.Class.define("smart.model.TreeTable",
       }
     },
     
-    _clearSelections : function()
+
+    /**
+     * Recursively walk the tree and create an ordered list of rows that
+     * represent that tree.
+     *
+     * @param srcNodeArr {Array}
+     *   The array containing the source nodes in the tree
+     *
+     * @param srcRowArr {Array}
+     *   The rows of the data model, pre-filtered, but not necessarily in tree
+     *   order.
+     *
+     * @param destNodeArr {Array}
+     *   The array of nodes being built
+     *
+     * @param destRowArr {Array}
+     *   A new array of row data (references to the data model) in the order
+     *   appropriate for displaying the data as a tree
+     *
+     * @param nodeId {Integer}
+     *   The current node being worked on -- an index into srcNodeArr
+     *
+     * @param level {Integer}
+     *   The indentation level of this branch of the tree
+     */
+    __inorder : function(srcNodeArr, srcRowArr, 
+                         destNodeArr, destRowArr,
+                         nodeId, level)
     {
-      this.__clearSelection();
+      var child = null;
+      var childNodeId;
+      var node = srcNodeArr[nodeId];
+      
+      // For each child of the specified node...
+      var numChildren = srcNodeArr[nodeId].children.length;
+
+      for (var i=0; i<numChildren; i++)
+      {
+        // Determine the node id of this child
+        childNodeId = srcNodeArr[nodeId].children[i];
+
+        // Get the child node
+        child = srcNodeArr[childNodeId];
+
+        // Skip deleted nodes
+        if (child == null)
+        {
+          continue;
+        }
+
+        // (Re-)assign this node's level
+        child.level = level;
+
+        // Determine if we're the first child of our parent
+        child.bFirstChild = (i == 0);
+
+        // Determine if we're the last child of our parent
+        child.lastChild = [ i == numChildren - 1 ];
+
+        // Get our parent.
+        var parent = srcNodeArr[child.parentNodeId];
+        
+        // For each parent node, determine if it is a last child
+        while (parent.nodeId)
+        {
+          var bLast = parent.lastChild[parent.lastChild.length - 1];
+          child.lastChild.unshift(bLast);
+          parent = srcNodeArr[parent.parentNodeId];
+        }
+
+        // Retrieve the source row index
+        var srcRowIndex = child.rowIndex;
+
+        // Add this child to the row data array
+        destRowArr.push(srcRowArr[srcRowIndex]);
+        
+        // Reassign to store the destination row index
+        child.__rowIndex = destRowArr.length;
+
+        // Track the node that goes with it, too
+        destNodeArr.push(child);
+
+        // If this child is opened, ...
+        if (child.bOpened)
+        {
+          // ... then add its children too.
+          this.__inorder(srcNodeArr, srcRowArr, 
+                         destNodeArr, destRowArr,
+                         childNodeId, level + 1);
+        }
+      }
     }
   }
 });

@@ -18,9 +18,14 @@
 
 ************************************************************************ */
 
+/*
+ * An abstract smart table/tree. Subclasses can fill in the abstract
+ * methods to provide a table/tree with various views and unique sorts.
+ */
 qx.Class.define("smart.addons.AbstractTree",
 {
   extend : qx.ui.table.Table,
+  type   : "abstract",
   
   // overridden
   construct : function(dm, custom)
@@ -129,24 +134,39 @@ qx.Class.define("smart.addons.AbstractTree",
      */
     handleHeaderClick : function(col, e)
     {
-      // abstract
+      throw new Error("handleHeaderClick is abstract");
     },
+
+
+    /**
+     * Create, in what ever way is appropriate to the selection widget being
+     * used, the "menu" of views that may be selected from a particular
+     * column.
+     *
+     * @param col {Integer}
+     *   The column number
+     *
+     * @param widget {qx.ui.core.Widget}
+     *   The widget that was instantiated by the header cell renderer to act
+     *   as the user selection mechanism for the view to be used.
+     */
+    _createViewButtonMenu : function(col, widget)
+    {
+      throw new Error("_createViewButtonMenu is abstract");
+    },
+
 
     // property apply method
     _applyView : function(value, old)
     {
-      // abstract
+      throw new Error("_applyView is abstract");
     },
 
-    _createViewButtonMenu : function(col, widget)
-    {
-      // abstract
-    },
 
     // property apply method
     _applyViewSelection : function(value, old)
     {
-      // abstract
+      throw new Error("_applyViewSelection is abstract");
     },
 
 

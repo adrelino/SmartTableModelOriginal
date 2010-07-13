@@ -12,9 +12,10 @@ qx.Theme.define("smart.theme.classic.Theme",
 {
   meta :
   {
-    color : smart.theme.classic.Color,
-    decoration : smart.theme.classic.Decoration,
-    font : smart.theme.classic.Font,
+    color      : qx.theme.modern.Color,
+    decoration : qx.theme.modern.Decoration,
+    font       : qx.theme.modern.Font,
     appearance : smart.theme.classic.Appearance
   }
 });
+
