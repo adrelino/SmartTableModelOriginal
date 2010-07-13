@@ -430,7 +430,7 @@ qx.Class.define("smart.demo.Application",
             view    : this.views["Threaded"].id,
             caption : "Threaded",
             abbrev  : "Threaded",
-            icon    : "grouped-ascending"
+            icon    : "smart/demo/threaded.png"
           }
         ];
 
@@ -440,7 +440,7 @@ qx.Class.define("smart.demo.Application",
             view    : this.views["Grouped By Date"].id,
             caption : "Grouped by Date, ascending",
             abbrev  : "Date",
-            icon    : "grouped-ascending"
+            icon    : "smart/demo/grouped-ascending.png"
           }
         ];
 
@@ -450,18 +450,21 @@ qx.Class.define("smart.demo.Application",
             view    : this.views["Unread"].id,
             caption : "Display only unread messages",
             abbrev  : "Unread",
-            icon    : "unread-only"
+            icon    : "smart/demo/unread.png"
           },
           {
             view    : this.views["Read"].id,
             caption : "Display only read messages",
             abbrev  : "Read",
-            icon    : "read-only"
+            icon    : "smart/demo/read.png"
           }
         ];
 
       // Provide the list of view selections to the table
       this.table.setViewSelection(viewSelection);
+      
+      // Don't show the abbreviations in the header line
+      this.table.setShowAbbreviations(false);
       
       // Select the initial view
       var viewAbbrev = viewSelection[this.columns["Subject"]][0].abbrev;
