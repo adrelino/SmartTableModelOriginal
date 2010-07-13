@@ -350,7 +350,7 @@ qx.Class.define("smart.demo.Application",
       tm.setColumns(column_names);
 
       // Create a table using the model
-      this.table = new smart.addons.Tree(tm);
+      this.table = new smart.addons.TreeWithViewMenu(tm);
 
       // Every row will have a unique Message Id so we'll use that column as
       // an index. The index will allow us to instantly find any message in the
