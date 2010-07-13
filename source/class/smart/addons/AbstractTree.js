@@ -342,12 +342,14 @@ qx.Class.define("smart.addons.AbstractTree",
      * @param e {qx.event.type.Data}
      *   The data event. The data provided is an object containing a member
      *   'column' indicating in which colunn the header was clicked, and a
-     *   member 'ascending' which is irrelevant in this tree.
+     *   member 'ascending' which is irrelevant in this tree. It also contains
+     *   a 'clickEvent' member which contains the original event object for
+     *   the click on the header.
      */
     __onHeaderClick : function(e)
     {
       var eventData = e.getData();
-      this.handleHeaderClick(eventData.column, e);
+      this.handleHeaderClick(eventData.column, eventData.clickEvent);
       
       // Prevent the default "sort" action
       e.preventDefault();

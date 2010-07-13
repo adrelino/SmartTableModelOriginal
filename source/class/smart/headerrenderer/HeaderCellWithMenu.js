@@ -60,6 +60,7 @@ qx.Class.define("smart.headerrenderer.HeaderCellWithMenu",
         control = new qx.ui.form.MenuButton("View", null);
         control.set(
           {
+            anonymous    : true,
             iconPosition : "right",
             appearance   : ""
           });
