@@ -61,7 +61,6 @@ qx.Class.define("smart.addons.Tree",
     {
       scrollerArr[i].addListener("beforeSort", this.__onHeaderClick, this);
     }
-    
   },
 
   properties :
@@ -124,7 +123,7 @@ qx.Class.define("smart.addons.Tree",
     },
 
 
-    handleHeaderClick : function(col)
+    handleHeaderClick : function(col, e)
     {
       // Get the table colum model so we can retrieve the header cell widgets
       var tcm = this.getTableColumnModel();
@@ -135,11 +134,14 @@ qx.Class.define("smart.addons.Tree",
       // Get the header cell widget for this column
       var widget = hcr.getWidget(col);
       
-      // Simulate a press on the view button, if it's visible
+      // Simulate a press on the view button, if it's visible, but open the
+      // menu near where the mouse was clicked.
       var menuButton = widget.getChildControl("menu-view-button");
       if (menuButton.isVisible())
       {
-        menuButton.open();
+        var menu = menuButton.getMenu();
+//        menu.setOpener(widget);
+        menu.open();
       }
     },
 
@@ -493,7 +495,7 @@ qx.Class.define("smart.addons.Tree",
     __onHeaderClick : function(e)
     {
       var eventData = e.getData();
-      this.handleHeaderClick(eventData.column);
+      this.handleHeaderClick(eventData.column, e);
       
       // Prevent the default "sort" action
       e.preventDefault();
