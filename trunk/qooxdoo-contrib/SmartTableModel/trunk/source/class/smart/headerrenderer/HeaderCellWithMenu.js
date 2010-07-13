@@ -61,7 +61,7 @@ qx.Class.define("smart.headerrenderer.HeaderCellWithMenu",
         control.set(
           {
             anonymous    : true,
-            iconPosition : "right",
+            iconPosition : "left",
             appearance   : ""
           });
           this._add(control, {row: 0, column: 2});

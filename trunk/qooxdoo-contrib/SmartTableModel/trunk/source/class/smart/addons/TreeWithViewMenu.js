@@ -16,6 +16,8 @@
     Authors:
       * Derrell Lipman
 
+#asset(smart/*)
+
 ************************************************************************ */
 
 qx.Class.define("smart.addons.TreeWithViewMenu",
@@ -28,7 +30,8 @@ qx.Class.define("smart.addons.TreeWithViewMenu",
     showAbbreviations :
     {
       check : "Boolean",
-      init  : true
+      init  : true,
+      apply : "_applyShowAbbreviations"
     }
   },
 
@@ -92,7 +95,7 @@ qx.Class.define("smart.addons.TreeWithViewMenu",
         if (viewData && col == viewData.__col)
         {
           // ... then set the menu button label and icon to the appropriate one
-          menuButton.setLabel(bShowAbbreviations ? viewData.abbrev : "");
+          menuButton.setLabel(bShowAbbreviations ? viewData.abbrev : null);
           menuButton.setIcon(viewData.icon);
 
           // Switch to this view
@@ -101,8 +104,8 @@ qx.Class.define("smart.addons.TreeWithViewMenu",
         else
         {
           // Otherwise, make the menu button invisible (but still active)
-          menuButton.setLabel("");
-          menuButton.setIcon("");
+          menuButton.setLabel(null);
+          menuButton.setIcon("smart/view-available.png");
         }
       }
     },
@@ -123,6 +126,12 @@ qx.Class.define("smart.addons.TreeWithViewMenu",
       // Retrieve the view button widget
       var menuButton = widget._showChildControl("menu-view-button");
 
+      // Arrange for showing, or not, the abbreviation in the header
+      menuButton.setShow(this.getShowAbbreviations() ? "both" : "icon");
+      
+      // We don't want an empty abbreviation taking up space, though
+      menuButton.getChildControl("label").setMinWidth(0);
+
       // Create a menu for this column's view selections
       var menu = new qx.ui.menu.Menu();
 
@@ -137,7 +146,8 @@ qx.Class.define("smart.addons.TreeWithViewMenu",
         this.assertString(viewData.abbrev);
 
         // Create the menu button
-        var viewButton = new qx.ui.menu.Button(viewData.caption);
+        var viewButton = 
+          new qx.ui.menu.Button(viewData.caption, viewData.icon);
 
         // Save the viewData object in the view button's user data
         viewButton.setUserData("viewData", viewData);
@@ -217,6 +227,19 @@ qx.Class.define("smart.addons.TreeWithViewMenu",
         // Create the view selection button menu (of whatever type it is)
         this._createViewButtonMenu(col, widget);
       }
+    },
+    
+    _applyShowAbbreviations : function(value, old)
+    {
+      // For each column...
+      for (col in this.__columnViewButtonMap)
+      {
+        // Retrieve the menu button for this column
+        var menuButton = this.__columnViewButtonMap[col];
+        
+        // Set visibility of the label according to requested value
+        menuButton.setShow(value ? "both" : "icon");
+      }      
     }
   },
   
