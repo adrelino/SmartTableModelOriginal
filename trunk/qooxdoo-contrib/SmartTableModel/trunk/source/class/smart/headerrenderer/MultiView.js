@@ -28,22 +28,6 @@ qx.Class.define("smart.headerrenderer.MultiView",
 {
   extend : qx.ui.table.headerrenderer.Default,
 
-
-  statics :
-  {
-    /**
-     * {String} The state which will be set for header cells of sorted columns.
-     */
-    STATE_SORTED           : "sorted",
-
-
-    /**
-     * {String} The state which will be set when sorting is ascending.
-     */
-    STATE_SORTED_ASCENDING : "sortedAscending"
-  },
-
-
   members :
   {
     __widget : null,
