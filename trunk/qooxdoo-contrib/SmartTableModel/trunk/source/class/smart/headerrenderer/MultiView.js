@@ -35,6 +35,9 @@ qx.Class.define("smart.headerrenderer.MultiView",
     /**
      * Get the header cell widget that contains the menu
      *
+     * @param col {Integer}
+     *   The column number for which the header cell widget is requested
+     *
      * @return {smart.headerrenderer.HeaderCellWithMenu}
      */
     getWidget : function(col)

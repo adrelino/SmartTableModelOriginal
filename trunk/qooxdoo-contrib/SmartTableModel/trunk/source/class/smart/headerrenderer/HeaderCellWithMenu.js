@@ -38,15 +38,6 @@ qx.Class.define("smart.headerrenderer.HeaderCellWithMenu",
     this.getLayout().setColumnFlex(2, 0);
   },
 
-  properties :
-  {
-    /** The icon URL of the sorting indicator */
-    viewButton :
-    {
-      init : null
-    }
-  },
-
   members :
   {
     // overridden

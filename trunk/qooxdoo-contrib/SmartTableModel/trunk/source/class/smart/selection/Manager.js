@@ -68,9 +68,11 @@ qx.Class.define("smart.selection.Manager",
      * "openCloseClickSelectsRow" property so indicates, call our superclass to
      * handle the actual row selection.
      *
-     * @param index {Integer} the index the event is pointing at.
-     * @param evt {Map} the mouse event.
-     * @return {void}
+     * @param index {Integer}
+     *   The index the event is pointing at.
+     *
+     * @param evt {Map}
+     *   The mouse event.
      */
     _handleSelectEvent : function(index, evt)
     {
@@ -114,6 +116,24 @@ qx.Class.define("smart.selection.Manager",
     },
     
 
+    /**
+     * Handle a button click (whether by mouse click or keyboard entry) on a
+     * table row. The location of a mouse click is ascertained, and certain
+     * locations produce special behavior. A click on the open/close icon of a
+     * tree row opens or closes that branch. Similarly, pressing "Enter"
+     * toggles the open state of a branch, and pressing "Space" selects the
+     * row.
+     *
+     * @param tree {qx.ui.treevirtual.TreeVirtual}
+     *   The tree on which the event has occurred.
+     *
+     * @param index {Integer} 
+     *   The index the event is pointing at.
+     *
+     * @param evt {Map}
+     *   The mouse event.  Of particular interest is evt.getViewportLeft()
+     *   which is the horizontal offset from the left border of the click.
+     */
     __handleButtonClick : function(tree, index, evt)
     {
       // Get the data model
@@ -219,7 +239,8 @@ qx.Class.define("smart.selection.Manager",
     }
   },
 
-  destruct : function() {
+  destruct : function() 
+  {
     this.__table = null;
   }
 });

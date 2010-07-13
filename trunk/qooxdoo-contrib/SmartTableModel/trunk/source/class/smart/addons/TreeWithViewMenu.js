@@ -37,16 +37,7 @@ qx.Class.define("smart.addons.TreeWithViewMenu",
 
   members :
   {
-    /**
-     * Handle displaying (or not) a means of allowing the user to select a
-     * view, when the header is clicked.
-     *
-     * @param col {Integer}
-     *   The column number in which the header was clicked
-     *
-     * @param clickEvent {qx.event.type.Event}
-     *   The header click event
-     */
+    // overridden
     handleHeaderClick : function(col, clickEvent)
     {
       // Get the table colum model so we can retrieve the header cell widgets
@@ -69,47 +60,7 @@ qx.Class.define("smart.addons.TreeWithViewMenu",
       }
     },
 
-    // property apply method
-    _applyView : function(value, old)
-    {
-      // Is the null view selected?
-      if (value === null)
-      {
-        // Yup. Select the primal view
-        this.getDataModel().setView(0);
-      }
-
-      // Retrieve view data from the abbreviations map, given the abbreviation
-      var viewData = this.__viewAbbreviationMap[value];
-
-      // Determine if we're displaying view abbreviations
-      var bShowAbbreviations = this.getShowAbbreviations();
-
-      // For each column...
-      for (col in this.__columnViewButtonMap)
-      {
-        // Retrieve the menu button for this column
-        var menuButton = this.__columnViewButtonMap[col];
-        
-        // If this is the column containing the view being selected...
-        if (viewData && col == viewData.__col)
-        {
-          // ... then set the menu button label and icon to the appropriate one
-          menuButton.setLabel(bShowAbbreviations ? viewData.abbrev : null);
-          menuButton.setIcon(viewData.icon);
-
-          // Switch to this view
-          this.getDataModel().setView(viewData.view);
-        }
-        else
-        {
-          // Otherwise, make the menu button invisible (but still active)
-          menuButton.setLabel(null);
-          menuButton.setIcon("smart/view-available.png");
-        }
-      }
-    },
-
+    // overridden
     _createViewButtonMenu : function(col, widget)
     {
       // Get the view selection data
@@ -189,6 +140,47 @@ qx.Class.define("smart.addons.TreeWithViewMenu",
 
 
     // property apply method
+    _applyView : function(value, old)
+    {
+      // Is the null view selected?
+      if (value === null)
+      {
+        // Yup. Select the primal view
+        this.getDataModel().setView(0);
+      }
+
+      // Retrieve view data from the abbreviations map, given the abbreviation
+      var viewData = this.__viewAbbreviationMap[value];
+
+      // Determine if we're displaying view abbreviations
+      var bShowAbbreviations = this.getShowAbbreviations();
+
+      // For each column...
+      for (col in this.__columnViewButtonMap)
+      {
+        // Retrieve the menu button for this column
+        var menuButton = this.__columnViewButtonMap[col];
+        
+        // If this is the column containing the view being selected...
+        if (viewData && col == viewData.__col)
+        {
+          // ... then set the menu button label and icon to the appropriate one
+          menuButton.setLabel(bShowAbbreviations ? viewData.abbrev : null);
+          menuButton.setIcon(viewData.icon);
+
+          // Switch to this view
+          this.getDataModel().setView(viewData.view);
+        }
+        else
+        {
+          // Otherwise, make the menu button invisible (but still active)
+          menuButton.setLabel(null);
+          menuButton.setIcon("smart/view-available.png");
+        }
+      }
+    },
+
+    // property apply method
     _applyViewSelection : function(value, old)
     {
       // If the view selection map is being removed...
@@ -229,6 +221,7 @@ qx.Class.define("smart.addons.TreeWithViewMenu",
       }
     },
     
+    // property apply method
     _applyShowAbbreviations : function(value, old)
     {
       // For each column...
