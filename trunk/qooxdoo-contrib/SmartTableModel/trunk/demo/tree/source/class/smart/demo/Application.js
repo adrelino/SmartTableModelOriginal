@@ -491,7 +491,7 @@ qx.Class.define("smart.demo.Application",
       {
       case 1:
         var instructions = new qx.ui.basic.Label(
-          "<h2>Click headers select different views of the same data.</h2>");
+          "<h2>Click headers to select different views of the same data.</h2>");
         instructions.setRich(true);
         this.getRoot().add(instructions,
         {
