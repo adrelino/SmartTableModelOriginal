@@ -419,9 +419,12 @@ qx.Class.define("smart.demo.Application",
                               new qx.ui.table.cellrenderer.Boolean());
       tcm.setDataCellRenderer(this.columns["Date"],
                               new qx.ui.table.cellrenderer.Date());
-      tcm.setColumnWidth(this.columns["Subject"], 600);
-      tcm.setColumnWidth(this.columns["Sender"], 150);
-      tcm.setColumnWidth(this.columns["Date"], 150);
+      tcm.setColumnWidth(this.columns["Subject"], 500);
+      tcm.setColumnWidth(this.columns["Sender"], 100);
+      tcm.setColumnWidth(this.columns["Date"], 120);
+      tcm.setColumnWidth(this.columns["MessageId"], 80);
+      tcm.setColumnWidth(this.columns["InReplyTo"], 80);
+      tcm.setColumnWidth(this.columns["Read?"], 80);
 
       // Change the date format for the "Date" column
       var dr = tcm.getDataCellRenderer(this.columns["Date"]);
