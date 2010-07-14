@@ -262,20 +262,22 @@ qx.Class.define("smart.demo.Application",
       },
       "Threaded":
       {
-        // Sort by date
+        // Sort by message id. This sort is required so that the
+        // postInsertRows method has parent nodes inserted into the tree
+        // before those nodes' children.
         sort : function(row1, row2)
         {
-          // Retrieve the two date values and convert to ms since epoch
-          var date1 = row1[this.columns["Date"]].getTime();
-          var date2 = row2[this.columns["Date"]].getTime();
+          // Retrieve the two message id values
+          var messageId1 = row1[this.columns["MessageId"]];
+          var messageId2 = row2[this.columns["MessageId"]];
 
-          // Earlier dates sort before later dates
-          if (date1 != date2)
+          // Earlier messageIds sort before later messageIds
+          if (messageId1 != messageId2)
           {
-            return (date1 < date2 ? -1 : 1);
+            return (messageId1 < messageId2 ? -1 : 1);
           }
 
-          // The two dates are the same
+          // The two messageIds are the same
           return 0;
         }
         ,
@@ -301,22 +303,28 @@ qx.Class.define("smart.demo.Application",
             // Find the message which is this message's parent
             // Is this message in reply to some previous one?
             var inReplyTo = row[this.columns["InReplyTo"]];
+            
+            // Assume this message's inReplyTo won't be found
+            parentRowId = null; 
+
             if (inReplyTo !== null && inReplyTo !== undefined)
             {
               // Yup. Locate the parent message
               parentRowId = dm.locate(this.columns["MessageId"],
                                       inReplyTo,
-                                      view) || 0;
+                                      view);
+            }
 
-              // Increment parent node id since root node is 0 and first
-              // added node is 1, but rows in row array begin at 0.
-              parentNodeId = parentRowId + 1;
-            }
-            else
-            {
-              // No InReplyTo so it's a top-level message, a child of the root.
-              parentNodeId = 0;
-            }
+            // If the parent row id was found, the corresponding node id will
+            // be one greater than the row id because the node array has an
+            // extra, root element in position zero.
+            //
+            // If the parent row id was not found, then the parent becomes the
+            // root.
+            parentNodeId = 
+              (parentRowId === null || parentRowId === undefined
+               ? 0
+               : parentRowId + 1);
 
             // Add this node to the tree
             dm.addBranch(view,
@@ -837,7 +845,7 @@ qx.Class.define("smart.demo.Application",
             for (j = 1; j <= howManyMiddleLevel; j++)
             {
               addMessage(i, j, null);
-              for (k = 1; k < howManyBottomLevel; k++)
+              for (k = 1; k <= howManyBottomLevel; k++)
               {
                 addMessage(i, j, k);
               }
@@ -845,10 +853,35 @@ qx.Class.define("smart.demo.Application",
           }
         }
         
-        addMessages(50, 2, 3);
+        var nextBottom = 2;
+        addMessages(50, 2, nextBottom);
+        ++nextBottom;
 
-        return data;
+        // Create a button to add a row
+        var button = new qx.ui.form.Button("Add Rows");
+        this.getRoot().add(button,
+        {
+          left : 100,
+          top  : 10
+        });
+
+        // Add an event listener to actually add the row when button is pressed
+        button.addListener("execute", 
+                           function(e) 
+                           {
+                             var dm = this.table.getDataModel();
+                             data = [];
+                             for (var i = 1; i < 50; i++)
+                             {
+                               addMessage(i, 1, nextBottom);
+                             }
+                             ++nextBottom;
+                             dm.addRows(data);
+                           },
+                           this);
         
+        return data;
+
       default:
         throw new Error("Unknown test");
       }
