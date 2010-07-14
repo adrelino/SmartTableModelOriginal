@@ -71,24 +71,6 @@ qx.Class.define("smart.demo.Application",
           return rowdata[this.columns["Read?"]];
         }
       },
-      "MessageId" :
-      {
-        sort : function(row1, row2)
-        {
-          // Retrieve the two messageId values
-          var messageId1 = row1[this.columns["MessageId"]];
-          var messageId2 = row2[this.columns["MessageId"]];
-
-          // Earlier messageIds sort before later messageIds
-          if (messageId1 != messageId2)
-          {
-            return (messageId1 < messageId2 ? -1 : 1);
-          }
-
-          // The two messageIds are the same
-          return 0;
-        }
-      },
       "Grouped By Date":
       {
         // When rows are about to be inserted, add date header rows
@@ -468,16 +450,6 @@ qx.Class.define("smart.demo.Application",
             view    : this.views["Grouped By Date"].id,
             caption : "Grouped by Date, ascending",
             abbrev  : "Date",
-            icon    : "smart/demo/grouped-ascending.png"
-          }
-        ];
-
-      viewSelection[this.columns["MessageId"]] =
-        [
-          {
-            view    : this.views["MessageId"].id,
-            caption : "Sort by Message ID",
-            abbrev  : "MessageId",
             icon    : "smart/demo/grouped-ascending.png"
           }
         ];
