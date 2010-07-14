@@ -25,6 +25,7 @@ qx.Theme.define("smart.theme.modern.Theme",
     color      : qx.theme.modern.Color,
     decoration : qx.theme.modern.Decoration,
     font       : qx.theme.modern.Font,
-    appearance : smart.theme.modern.Appearance
+    appearance : smart.theme.modern.Appearance,
+    icon       : qx.theme.icon.Tango
   }
 });
