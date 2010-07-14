@@ -4,7 +4,7 @@
     "name" : "SmartTableModel Demo",
 
     "summary" : "SmartTableModel Demo",
-    "description" : "This is a skeleton for a qooxdoo contribution demo.",
+    "description" : "Combined tree/table with multiple views.",
     
     "homepage" : "http://demo.qooxdoo.org/contrib/SmartTableModel",
 
@@ -12,13 +12,13 @@
     "authors" : 
     [
       {
-        "name" : "First Author (uid)",
-        "email" : "first.author@some.domain"
+        "name" : "Derrell Lipman (derrell)",
+        "email" : "Derrell.Lipman@unwireduniverse.com"
       }
     ],
 
     "version" : "trunk",
-    "qooxdoo-versions": ["0.8.3"]
+    "qooxdoo-versions": ["0.8.3", "trunk"]
   },
   
   "provides" : 
