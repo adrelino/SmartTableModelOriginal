@@ -1,7 +1,7 @@
 /*
  * <h3> smart table API Documentation </h3>
  *
- * The Smart Table is comporised of an independent table model that may be
+ * The Smart Table is comprised of an independent table model that may be
  * used on its own with qx.ui.table.Table, but which is also used for a Smart
  * Table/Tree with multiple views, some in tree structure, some not. See
  * smart.demo.tree for an example with multiple views of an email inbox.
@@ -24,9 +24,9 @@
  *
  * Filtering is also maintained incrementally: we keep multiple views of the
  * data in "backing store", and can then select between them just by changing
- * this.__rowArr. We apply all modifications to all views -- for example, all
- * copies are kept sorted, and rows are added and removed to/from all (subject
- * to filtering). This allows real-time switching between views.
+ * a single variable. We apply all modifications to all views -- for example,
+ * all copies are kept sorted, and rows are added and removed to/from all
+ * (subject to filtering). This allows real-time switching between views.
  *
  * User-defined indices are another powerful Smart model feature: they allow
  * users to quickly locate a row in a view by a unique identifier stored in a
