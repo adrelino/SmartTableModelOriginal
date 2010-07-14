@@ -1997,6 +1997,11 @@ qx.Class.define("smart.model.Default",
 
       for (var v = 0; v < this.__views.length; v++)
       {
+        // Reset the alternate row array. If the view requires it, the view's
+        // pre- or post-insert function will deal with recreating it.
+        this.setAlternateRowArray(v, null);
+        
+        // Now remove the rows for this view
         this.__removeRows(v, rows);
       }
       
@@ -2023,6 +2028,7 @@ qx.Class.define("smart.model.Default",
         {
           this.__backingstore[v] = [];
           this.__backingstore[v].__name = "Primary backing store";
+          this.__alternate_backingstore[v] = null;
         }
         this._updateAssociationMaps();
         this.__notifyDataChanged();
