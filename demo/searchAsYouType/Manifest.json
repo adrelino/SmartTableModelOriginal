@@ -1,14 +1,14 @@
 {
   "info" : 
   {
-    "name" : "smart.searchAsYouType",
+    "name" : "SmartTableModel Demo: searchAsYouType",
 
     "summary" : "Demo Application for Search as you type filter",
     "description" : "Using SmartTableModel with a search-as-you-type filter",
     
     "homepage" : "",
 
-    "license" : "LGPL and EPL",
+    "license" : "LGPL/EPL",
     "authors" : 
     [
       {
@@ -18,7 +18,7 @@
     ],
 
     "version" : "trunk",
-    "qooxdoo-versions": ["0.9-pre"]
+    "qooxdoo-versions": ["1.0"]
   },
   
   "provides" : 
