@@ -394,8 +394,8 @@ qx.Class.define("smart.demo.Application",
       }
 
       // Add some static data
-//      tm.setData(this.testData(1));
-      tm.setData(this.testData(2));
+      tm.setData(this.testData(1));
+//      tm.setData(this.testData(2));
 
       // Enable indexed selection by MessageId. This will cause the model
       // to automatically preserve the selection across table modifications,
@@ -490,6 +490,15 @@ qx.Class.define("smart.demo.Application",
       switch(test)
       {
       case 1:
+        var instructions = new qx.ui.basic.Label(
+          "<h2>Click headers select different views of the same data.</h2>");
+        instructions.setRich(true);
+        this.getRoot().add(instructions,
+        {
+          left : 100,
+          top  : 0
+        });
+
         // Generate a static data model for a series of email messages.
         // Each row consists, first, of the displayed column data, and finally
         // the message id and then a map of additional information which may be
