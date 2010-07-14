@@ -1872,6 +1872,11 @@ qx.Class.define("smart.model.Default",
       // filters
       for (var v = 0; v < this.__views.length; v++)
       {
+        // Reset the alternate row array. If the view requires it, the view's
+        // pre- or post-insert function will deal with recreating it.
+        this.setAlternateRowArray(v, null);
+        
+        // Now insert the new rows for this view
         this.__insertRows(v, A, /*runFilters:*/ true, /*alreadySorted:*/ true);
       }
 

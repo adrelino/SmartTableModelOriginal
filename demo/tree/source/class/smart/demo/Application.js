@@ -71,6 +71,24 @@ qx.Class.define("smart.demo.Application",
           return rowdata[this.columns["Read?"]];
         }
       },
+      "MessageId" :
+      {
+        sort : function(row1, row2)
+        {
+          // Retrieve the two messageId values
+          var messageId1 = row1[this.columns["MessageId"]];
+          var messageId2 = row2[this.columns["MessageId"]];
+
+          // Earlier messageIds sort before later messageIds
+          if (messageId1 != messageId2)
+          {
+            return (messageId1 < messageId2 ? -1 : 1);
+          }
+
+          // The two messageIds are the same
+          return 0;
+        }
+      },
       "Grouped By Date":
       {
         // When rows are about to be inserted, add date header rows
@@ -244,7 +262,7 @@ qx.Class.define("smart.demo.Application",
       },
       "Threaded":
       {
-        // Sort by date, with header rows sorted before non-header rows
+        // Sort by date
         sort : function(row1, row2)
         {
           // Retrieve the two date values and convert to ms since epoch
@@ -259,7 +277,8 @@ qx.Class.define("smart.demo.Application",
 
           // The two dates are the same
           return 0;
-        },
+        }
+        ,
         
         postInsertRows : function(view, srcRowArr, dm)
         {
@@ -385,7 +404,8 @@ qx.Class.define("smart.demo.Application",
       }
 
       // Add some static data
-      tm.setData(this.testData());
+//      tm.setData(this.testData(1));
+      tm.setData(this.testData(2));
 
       // Enable indexed selection by MessageId. This will cause the model
       // to automatically preserve the selection across table modifications,
@@ -444,6 +464,16 @@ qx.Class.define("smart.demo.Application",
           }
         ];
 
+      viewSelection[this.columns["MessageId"]] =
+        [
+          {
+            view    : this.views["MessageId"].id,
+            caption : "Sort by Message ID",
+            abbrev  : "MessageId",
+            icon    : "smart/demo/grouped-ascending.png"
+          }
+        ];
+
       viewSelection[this.columns["Read?"]] =
         [
           {
@@ -475,264 +505,353 @@ qx.Class.define("smart.demo.Application",
       root.add(this.table, { edge : 10, top : 40 });
     },
 	    
-    testData : function()
+    testData : function(test)
     {
-      // Generate a static data model for a series of email messages.
-      // Each row consists, first, of the displayed column data, and finally
-      // the message id and then a map of additional information which may be
-      // used to build a tree from the data.
-      return [
-               [
-                 "[qooxdoo-devel] break on error in Firebug in func gecko()",
-                 "Werner Thie",
-                 new timezonedate.TimezoneDate("2010-06-09T11:53"),
-                 0,
-                 null,
-                 true,
-                 {
-                 }
-               ],
-               [
-                 "Re: [qooxdoo-devel] break on error in Firebug in func gecko()",
-                 "thron7",
-                 new timezonedate.TimezoneDate("2010-06-09T14:28"),
-                 1,
-                 0,
-                 true,
-                 {
-                 }
-               ],
-               [
-                 "Re: [qooxdoo-devel] break on error in Firebug in func gecko()",
-                 "Derrell Lipman",
-                 new timezonedate.TimezoneDate("2010-06-09T14:32"),
-                 2,
-                 1,
-                 false,
-                 {
-                 }
-               ],
-               [
-                 "[qooxdoo-devel] scrolling experience",
-                 "Tobias Oetiker",
-                 new timezonedate.TimezoneDate("2010-06-08T07:56"),
-                 3,
-                 null,
-                 true,
-                 {
-                 }
-               ],
-               [
-                 "Re: [qooxdoo-devel] scrolling experience",
-                 "MartinWitteman",
-                 new timezonedate.TimezoneDate("2010-06-09T12:53"),
-                 4,
-                 3,
-                 true,
-                 {
-                 }
-               ],
-               [
-                 "Re: [qooxdoo-devel] scrolling experience",
-                 "Tobias Oetiker",
-                 new timezonedate.TimezoneDate("2010-06-09T13:42"),
-                 5,
-                 4,
-                 true,
-                 {
-                 }
-               ],
-               [
-                 "Re: [qooxdoo-devel] scrolling experience",
-                 "MartinWitteman",
-                 new timezonedate.TimezoneDate("2010-06-09T14:28"),
-                 6,
-                 5,
-                 false,
-                 {
-                 }
-               ],
-               [
-                 "[qooxdoo-devel] How to patch static methods/members? (qooxdoo 1.2-pre)",
-                 "Peter Schneider",
-                 new timezonedate.TimezoneDate("2010-06-09T09:18"),
-                 7,
-                 null,
-                 false,
-                 {
-                 }
-               ],
-               [
-                 "Re: [qooxdoo-devel] How to patch static methods/members? (qooxdoo 1.2-pre)",
-                 "Derrell Lipman",
-                 new timezonedate.TimezoneDate("2010-06-09T13:59"),
-                 8,
-                 7,
-                 false,
-                 {
-                 }
-               ],
-               [
-                 "Re: [qooxdoo-devel] How to patch static methods/members? (qooxdoo 1.2-pre)",
-                 "Peter Schneider",
-                 new timezonedate.TimezoneDate("2010-06-09T13:59"),
-                 9,
-                 8,
-                 false,
-                 {
-                 }
-               ],
-               [
-                 "Re: [qooxdoo-devel] How to patch static methods/members? (qooxdoo 1.2-pre)",
-                 "Derrell LIpman",
-                 new timezonedate.TimezoneDate("2010-06-09T14:04"),
-                 10,
-                 9,
-                 false,
-                 {
-                 }
-               ],
-               [
-                 "[qooxdoo-devel] mo better qooxlisp",
-                 "Kenneth Tilton",
-                 new timezonedate.TimezoneDate("2010-06-05T23:40"),
-                 11,
-                 null,
-                 true,
-                 {
-                 }
-               ],
-               [
-                 "Re: [qooxdoo-devel][Lisp] mo better qooxlisp",
-                 "Ken Tilton",
-                 new timezonedate.TimezoneDate("2010-06-09T13:11"),
-                 12,
-                 11,
-                 true,
-                 {
-                 }
-               ],
-               [
-                 "Re: [qooxdoo-devel][Lisp] mo better qooxlisp",
-                 "Joubert Nel",
-                 new timezonedate.TimezoneDate("2010-06-09T13:24"),
-                 13,
-                 12,
-                 true,
-                 {
-                 }
-               ],
-               [
-                 "Re: [qooxdoo-devel][Lisp] mo better qooxlisp",
-                 "Kenneth Tilton",
-                 new timezonedate.TimezoneDate("2010-06-09T13:40"),
-                 14,
-                 13,
-                 true,
-                 {
-                 }
-               ],
-               [
-                 "[qooxdoo-devel] a jqPlot qooxdoo integration widget contrib",
-                 "Tobias Oetiker",
-                 new timezonedate.TimezoneDate("2010-06-08T10:59"),
-                 15,
-                 null,
-                 false,
-                 {
-                 }
-               ],
-               [
-                 "Re: [qooxdoo-devel] a jqPlot qooxdoo integration widget contrib",
-                 "panyasan",
-                 new timezonedate.TimezoneDate("2010-06-09T07:48"),
-                 16,
-                 15,
-                 false,
-                 {
-                 }
-               ],
-               [
-                 "Re: [qooxdoo-devel] a jqPlot qooxdoo integration widget contrib",
-                 "Tobi Oetiker",
-                 new timezonedate.TimezoneDate("2010-06-09T13:24"),
-                 17,
-                 15,
-                 false,
-                 {
-                 }
-               ],
-               [
-                 "[qooxdoo-devel] Extending application to native window (my favorite bug)",
-                 "panyasan",
-                 new timezonedate.TimezoneDate("2010-06-09T07:48"),
-                 18,
-                 null,
-                 false,
-                 {
-                 }
-               ],
-               [
-                 "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
-                 "thron7",
-                 new timezonedate.TimezoneDate("2010-06-09T11:42"),
-                 19,
-                 18,
-                 false,
-                 {
-                 }
-               ],
-               [
-                 "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
-                 "panyasan",
-                 new timezonedate.TimezoneDate("2010-06-09T12:16"),
-                 20,
-                 19,
-                 false,
-                 {
-                 }
-               ],
-               [
-                 "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
-                 "hkalyoncu",
-                 new timezonedate.TimezoneDate("2010-06-09T12:57"),
-                 21,
-                 20,
-                 false,
-                 {
-                 }
-               ],
-               [
-                 "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
-                 "Fritz Zaucker",
-                 new timezonedate.TimezoneDate("2010-06-09T12:58"),
-                 22,
-                 20,
-                 false,
-                 {
-                 }
-               ],
-               [
-                 "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
-                 "panyasan",
-                 new timezonedate.TimezoneDate("2010-06-09T13:05"),
-                 23,
-                 22,
-                 false,
-                 {
-                 }
-               ],
-               [
-                 "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
-                 "thron7",
-                 new timezonedate.TimezoneDate("2010-06-09T13:18"),
-                 24,
-                 20,
-                 false,
-                 {
-                 }
-               ]
-             ];
-   } 
+      switch(test)
+      {
+      case 1:
+        // Generate a static data model for a series of email messages.
+        // Each row consists, first, of the displayed column data, and finally
+        // the message id and then a map of additional information which may be
+        // used to build a tree from the data.
+        return [
+                 [
+                   "[qooxdoo-devel] break on error in Firebug in func gecko()",
+                   "Werner Thie",
+                   new timezonedate.TimezoneDate("2010-06-09T11:53"),
+                   0,
+                   null,
+                   true,
+                   {
+                   }
+                 ],
+                 [
+                   "Re: [qooxdoo-devel] break on error in Firebug in func gecko()",
+                   "thron7",
+                   new timezonedate.TimezoneDate("2010-06-09T14:28"),
+                   1,
+                   0,
+                   true,
+                   {
+                   }
+                 ],
+                 [
+                   "Re: [qooxdoo-devel] break on error in Firebug in func gecko()",
+                   "Derrell Lipman",
+                   new timezonedate.TimezoneDate("2010-06-09T14:32"),
+                   2,
+                   1,
+                   false,
+                   {
+                   }
+                 ],
+                 [
+                   "[qooxdoo-devel] scrolling experience",
+                   "Tobias Oetiker",
+                   new timezonedate.TimezoneDate("2010-06-08T07:56"),
+                   3,
+                   null,
+                   true,
+                   {
+                   }
+                 ],
+                 [
+                   "Re: [qooxdoo-devel] scrolling experience",
+                   "MartinWitteman",
+                   new timezonedate.TimezoneDate("2010-06-09T12:53"),
+                   4,
+                   3,
+                   true,
+                   {
+                   }
+                 ],
+                 [
+                   "Re: [qooxdoo-devel] scrolling experience",
+                   "Tobias Oetiker",
+                   new timezonedate.TimezoneDate("2010-06-09T13:42"),
+                   5,
+                   4,
+                   true,
+                   {
+                   }
+                 ],
+                 [
+                   "Re: [qooxdoo-devel] scrolling experience",
+                   "MartinWitteman",
+                   new timezonedate.TimezoneDate("2010-06-09T14:28"),
+                   6,
+                   5,
+                   false,
+                   {
+                   }
+                 ],
+                 [
+                   "[qooxdoo-devel] How to patch static methods/members? (qooxdoo 1.2-pre)",
+                   "Peter Schneider",
+                   new timezonedate.TimezoneDate("2010-06-09T09:18"),
+                   7,
+                   null,
+                   false,
+                   {
+                   }
+                 ],
+                 [
+                   "Re: [qooxdoo-devel] How to patch static methods/members? (qooxdoo 1.2-pre)",
+                   "Derrell Lipman",
+                   new timezonedate.TimezoneDate("2010-06-09T13:59"),
+                   8,
+                   7,
+                   false,
+                   {
+                   }
+                 ],
+                 [
+                   "Re: [qooxdoo-devel] How to patch static methods/members? (qooxdoo 1.2-pre)",
+                   "Peter Schneider",
+                   new timezonedate.TimezoneDate("2010-06-09T13:59"),
+                   9,
+                   8,
+                   false,
+                   {
+                   }
+                 ],
+                 [
+                   "Re: [qooxdoo-devel] How to patch static methods/members? (qooxdoo 1.2-pre)",
+                   "Derrell LIpman",
+                   new timezonedate.TimezoneDate("2010-06-09T14:04"),
+                   10,
+                   9,
+                   false,
+                   {
+                   }
+                 ],
+                 [
+                   "[qooxdoo-devel] mo better qooxlisp",
+                   "Kenneth Tilton",
+                   new timezonedate.TimezoneDate("2010-06-05T23:40"),
+                   11,
+                   null,
+                   true,
+                   {
+                   }
+                 ],
+                 [
+                   "Re: [qooxdoo-devel][Lisp] mo better qooxlisp",
+                   "Ken Tilton",
+                   new timezonedate.TimezoneDate("2010-06-09T13:11"),
+                   12,
+                   11,
+                   true,
+                   {
+                   }
+                 ],
+                 [
+                   "Re: [qooxdoo-devel][Lisp] mo better qooxlisp",
+                   "Joubert Nel",
+                   new timezonedate.TimezoneDate("2010-06-09T13:24"),
+                   13,
+                   12,
+                   true,
+                   {
+                   }
+                 ],
+                 [
+                   "Re: [qooxdoo-devel][Lisp] mo better qooxlisp",
+                   "Kenneth Tilton",
+                   new timezonedate.TimezoneDate("2010-06-09T13:40"),
+                   14,
+                   13,
+                   true,
+                   {
+                   }
+                 ],
+                 [
+                   "[qooxdoo-devel] a jqPlot qooxdoo integration widget contrib",
+                   "Tobias Oetiker",
+                   new timezonedate.TimezoneDate("2010-06-08T10:59"),
+                   15,
+                   null,
+                   false,
+                   {
+                   }
+                 ],
+                 [
+                   "Re: [qooxdoo-devel] a jqPlot qooxdoo integration widget contrib",
+                   "panyasan",
+                   new timezonedate.TimezoneDate("2010-06-09T07:48"),
+                   16,
+                   15,
+                   false,
+                   {
+                   }
+                 ],
+                 [
+                   "Re: [qooxdoo-devel] a jqPlot qooxdoo integration widget contrib",
+                   "Tobi Oetiker",
+                   new timezonedate.TimezoneDate("2010-06-09T13:24"),
+                   17,
+                   15,
+                   false,
+                   {
+                   }
+                 ],
+                 [
+                   "[qooxdoo-devel] Extending application to native window (my favorite bug)",
+                   "panyasan",
+                   new timezonedate.TimezoneDate("2010-06-09T07:48"),
+                   18,
+                   null,
+                   false,
+                   {
+                   }
+                 ],
+                 [
+                   "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
+                   "thron7",
+                   new timezonedate.TimezoneDate("2010-06-09T11:42"),
+                   19,
+                   18,
+                   false,
+                   {
+                   }
+                 ],
+                 [
+                   "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
+                   "panyasan",
+                   new timezonedate.TimezoneDate("2010-06-09T12:16"),
+                   20,
+                   19,
+                   false,
+                   {
+                   }
+                 ],
+                 [
+                   "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
+                   "hkalyoncu",
+                   new timezonedate.TimezoneDate("2010-06-09T12:57"),
+                   21,
+                   20,
+                   false,
+                   {
+                   }
+                 ],
+                 [
+                   "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
+                   "Fritz Zaucker",
+                   new timezonedate.TimezoneDate("2010-06-09T12:58"),
+                   22,
+                   20,
+                   false,
+                   {
+                   }
+                 ],
+                 [
+                   "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
+                   "panyasan",
+                   new timezonedate.TimezoneDate("2010-06-09T13:05"),
+                   23,
+                   22,
+                   false,
+                   {
+                   }
+                 ],
+                 [
+                   "Re: [qooxdoo-devel] Extending application to native window (my favorite bug)",
+                   "thron7",
+                   new timezonedate.TimezoneDate("2010-06-09T13:18"),
+                   24,
+                   20,
+                   false,
+                   {
+                   }
+                 ]
+               ];
+        
+      case 2:
+        var i, j, k;
+        var data = [ ];
+        var now = new Date();
+        var messageTime = now - (3 * 24 * 60 * 60 * 1000);
+        var inUse = { };
+        var senders =
+          [
+            "Derrell Lipman",
+            "Kenneth Tilton",
+            "Joubert Nel",
+            "Tobias Oetiker",
+            "Martin Witteman",
+            "panyasan",
+            "thron7",
+            "Fritz Zaucker",
+            "Peter Schneider",
+            "Werner Thie"
+          ];
+
+        function addMessage(i, j, k)
+        {
+          var date;
+          var inReplyTo = null;
+
+          var messageId = i + "";
+          
+          if (j !== null)
+          {
+            inReplyTo = messageId;
+            messageId += "-" + j;
+            
+            if (k !== null)
+            {
+              inReplyTo = messageId;
+              messageId += "-" + k;
+            }
+          }
+
+          date = new timezonedate.TimezoneDate(messageTime);
+          messageTime += 5 * 60 * 1000;
+
+          var sender = senders[Math.floor(Math.random() * senders.length)];
+          var bRead = (Math.random() < 0.5 ? true : false);
+
+          inUse[messageId] = date;
+
+          data.push(
+            [
+              messageId,        //subject
+              sender,
+              date,
+              messageId,
+              inReplyTo,
+              bRead,
+              {
+              }
+            ]);
+        }
+
+        function addMessages(howManyTopLevel,
+                             howManyMiddleLevel,
+                             howManyBottomLevel)
+        {
+          for (i = 1; i <= howManyTopLevel; i++)
+          {
+            addMessage(i, null, null);
+            for (j = 1; j <= howManyMiddleLevel; j++)
+            {
+              addMessage(i, j, null);
+              for (k = 1; k < howManyBottomLevel; k++)
+              {
+                addMessage(i, j, k);
+              }
+            }
+          }
+        }
+        
+        addMessages(50, 2, 3);
+
+        return data;
+        
+      default:
+        throw new Error("Unknown test");
+      }
+    }
   }
 });
