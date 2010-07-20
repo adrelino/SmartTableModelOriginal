@@ -1416,6 +1416,7 @@ qx.Class.define("smart.model.Default",
         viewData.advanced.fPostInsertRows.call(viewData.context,
                                                view,
                                                this.getRowArray(view),
+                                               rows,
                                                this);
       }
     },
