@@ -2325,11 +2325,6 @@ qx.Class.define("smart.model.Default",
         return undefined;
       }
 
-      for (var v = 0; v < this.__views.length; v++)
-      {
-        var r = this.__getAssoc(v)[R.__id];
-      }
-		    
       return this.__getAssoc(view)[R.__id];
     },
 
