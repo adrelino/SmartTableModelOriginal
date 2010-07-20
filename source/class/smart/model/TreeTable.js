@@ -44,6 +44,9 @@ qx.Class.define("smart.model.TreeTable",
     /**
      * Create an initial node list for a new tree.
      *
+     * @param view {Integer}
+     *   Which model view this operation should apply to.
+     *
      * @return {Array}
      *   An array containing a single "root" node which can be used as the
      *   parent of additional nodes added to the tree.
@@ -60,6 +63,22 @@ qx.Class.define("smart.model.TreeTable",
     },
 
     /**
+     * Return the current node array
+     *
+     * @param view {Integer}
+     *   Which model view this operation should apply to.
+     *
+     * @return {Array}
+     *   An array containing a single "root" node which can be used as the
+     *   parent of additional nodes added to the tree.
+     */
+    getNodeArray : function(view)
+    {
+      var rowArray = this.getRowArray(view, false);
+      return rowArray.nodeArr;
+    },
+
+    /**
      * Add a branch to the tree.
      *
      * @param view {Integer}
@@ -68,8 +87,8 @@ qx.Class.define("smart.model.TreeTable",
      * @param nodeArr {Array}
      *   The array to which new nodes are to be added
      *
-     * @param rowIndex {Integer}
-     *   Index in row array of this node
+     * @param rowId {Integer}
+     *   The unique identifier of this row
      *
      * @param parentNodeId {Integer}
      *   The node id of the parent of the node being added
@@ -98,7 +117,7 @@ qx.Class.define("smart.model.TreeTable",
      */
     addBranch : function(view,
                          nodeArr,
-                         rowIndex,
+                         rowId,
                          parentNodeId,
                          label,
                          bOpened,
@@ -120,7 +139,7 @@ qx.Class.define("smart.model.TreeTable",
       var node = nodeArr[nodeId];
 
       // Save the row index
-      node.rowIndex = rowIndex;
+      node.rowId = rowId;
 
       // If this is a header node...
       if (bHeader)
@@ -145,8 +164,8 @@ qx.Class.define("smart.model.TreeTable",
      * @param nodeArr {Array}
      *   The array to which new nodes are to be added
      *
-     * @param rowIndex {Integer}
-     *   Index in row array of this node
+     * @param rowId {Integer}
+     *   The unique identifier of this row
      *
      * @param parentNodeId {Integer}
      *   The node id of the parent of the node being added
@@ -166,7 +185,7 @@ qx.Class.define("smart.model.TreeTable",
      */
     addLeaf : function(view,
                        nodeArr,
-                       rowIndex,
+                       rowId,
                        parentNodeId,
                        label,
                        icon)
@@ -182,7 +201,7 @@ qx.Class.define("smart.model.TreeTable",
           icon);
 
       // Save the row index
-      nodeArr[nodeId].rowIndex = rowIndex;
+      nodeArr[nodeId].rowId = rowId;
       
       // The tree data is corrupted now. Flush it.
       this.setAlternateRowArray(view, null);
@@ -245,7 +264,7 @@ qx.Class.define("smart.model.TreeTable",
       
       // Begin in-order traversal of the tree from the root to regenerate a
       // displayable row array
-      this.__inorder(nodeArr, srcRowArr, destNodeArr, destRowArr, 0, 1);
+      this.__inorder(view, nodeArr, srcRowArr, destNodeArr, destRowArr, 0, 1);
       
       // Recreate the index for this view
       this._updateAssociationMaps(view);
@@ -263,8 +282,8 @@ qx.Class.define("smart.model.TreeTable",
      * @throws {Error}
      *   Thrown if the row index is out of bounds.
      *   
-     * @param rowIndex {Integer}
-     *   The index of the row.
+     * @param rowId {Integer}
+     *   The unique identifer of this row
      *   
      * @param view {Integer ?}
      *   Which model view this operation should apply to. If this parameter is
@@ -273,7 +292,7 @@ qx.Class.define("smart.model.TreeTable",
      * @return {Object|null}
      *   The node object associated with the specified row.
      */
-    getNode : function(rowIndex, view)
+    getNode : function(rowId, view)
     {
       if (view === undefined)
       {
@@ -291,7 +310,7 @@ qx.Class.define("smart.model.TreeTable",
       }
 
       // Give 'em what they came for.
-      return nodeArr[rowIndex];
+      return nodeArr[rowId];
     },
 
     /*
@@ -507,7 +526,8 @@ qx.Class.define("smart.model.TreeTable",
      * @param level {Integer}
      *   The indentation level of this branch of the tree
      */
-    __inorder : function(srcNodeArr, srcRowArr, 
+    __inorder : function(view,
+                         srcNodeArr, srcRowArr, 
                          destNodeArr, destRowArr,
                          nodeId, level)
     {
@@ -552,11 +572,11 @@ qx.Class.define("smart.model.TreeTable",
           parent = srcNodeArr[parent.parentNodeId];
         }
 
-        // Retrieve the source row index
-        var srcRowIndex = child.rowIndex;
+        // Retrieve the source row id
+        var srcRowId = child.rowId;
 
         // Add this child to the row data array
-        destRowArr.push(srcRowArr[srcRowIndex]);
+        destRowArr.push(this.getRowById(view, srcRowId));
         
         // Reassign to store the destination row index
         child.__rowIndex = destRowArr.length;
@@ -568,7 +588,8 @@ qx.Class.define("smart.model.TreeTable",
         if (child.bOpened)
         {
           // ... then add its children too.
-          this.__inorder(srcNodeArr, srcRowArr, 
+          this.__inorder(view,
+                         srcNodeArr, srcRowArr, 
                          destNodeArr, destRowArr,
                          childNodeId, level + 1);
         }
