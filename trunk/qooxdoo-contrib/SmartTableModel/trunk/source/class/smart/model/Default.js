@@ -347,15 +347,30 @@ qx.Class.define("smart.model.Default",
      *
      *     fPreInsertRows
      *       A function which is called when rows are about to be inserted. It
-     *       is passed three parameters: the existing row array for the view,
-     *       the array of rows to be inserted, and a reference to the data
-     *       model. It is legitimate for the function to alter the array of
-     *       rows to be inserted, e.g. by adding additional rows.
+     *       is passed four parameters: the view, the existing row array for
+     *       the view, the array of rows to be inserted, and a reference to
+     *       the data model. It is legitimate for the function to alter the
+     *       array of rows to be inserted, e.g. by adding additional rows.
      *       
      *     fPostInsertRows
      *       A function which is called after a set of rows has been
-     *       inserted. It is passed two parameters: the existing row array for
-     *       the view and a reference to the data model.
+     *       inserted. It is passed four parameters: the view, the existing
+     *       row array for the view, the array of rows being inserted, and a
+     *       reference to the data model.
+     *
+     *     fPreRemoveRows
+     *       A function which is called when rows are about to be removed. It
+     *       is passed four parameters: the view, the existing row array for
+     *       the view, the array of rows to be inserted, and a reference to
+     *       the data model. This function is called before invalidating the
+     *       alternate row array, in case the function has need for the old
+     *       data stored there.
+     *       
+     *     fPostRemoveRows
+     *       A function which is called after a set of rows has been
+     *       removed. It is passed four parameters: the view, the existing
+     *       row array for the view, the array of rows being inserted, and a
+     *       reference to the data model.
      *
      * @return {Object}
      *   An opaque nandle which identifies the view.
