@@ -152,6 +152,9 @@ qx.Class.define("smart.demo.Application",
             }
           }
           
+          // Assign an id to each of the new header rows
+          dm.assignRowIDs(headerRows);
+          
           // Now that we've created all of the header rows, append them to the
           // newRows array.
           for (i = 0; i < headerRows.length; i++)
@@ -197,6 +200,7 @@ qx.Class.define("smart.demo.Application",
         postInsertRows : function(view, srcRowArr, dm)
         {
           var node;
+          var nodeId;
           var nodeArr;
           
           // (Re-)Create the node array for this view
@@ -220,22 +224,28 @@ qx.Class.define("smart.demo.Application",
               // Yup. It becomes the new parent.
               parentNodeId = dm.addBranch(view,
                                           nodeArr, 
-                                          i,
+                                          dm.getRowId(row),
                                           0,
                                           row[this.columns["Subject"]],
                                           true,
                                           false,
                                           true);
+              
+              node = nodeArr[parentNodeId];
             }
             else
             {
               // It's not a header row. Create a leaf node for it.
-              dm.addLeaf(view,
-                         nodeArr,
-                         i,
-                         parentNodeId,
-                         row[this.columns["Subject"]]);
+              nodeId = dm.addLeaf(view,
+                                  nodeArr,
+                                  dm.getRowId(row),
+                                  parentNodeId,
+                                  row[this.columns["Subject"]]);
+              node = nodeArr[nodeId];
             }
+            
+            // Save this node in association with its id
+            
           }
           
           // Build the table from the tree data now!
@@ -311,7 +321,7 @@ qx.Class.define("smart.demo.Application",
             // Add this node to the tree
             dm.addBranch(view,
                          nodeArr,
-                         i,
+                         dm.getRowId(row),
                          parentNodeId,
                          row[this.columns["Subject"]],
                          true,
