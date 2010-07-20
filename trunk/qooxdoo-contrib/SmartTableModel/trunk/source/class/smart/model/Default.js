@@ -1418,7 +1418,6 @@ qx.Class.define("smart.model.Default",
                                                this.getRowArray(view),
                                                this);
       }
-
     },
 
     // Internal-use method to set a subset of values in a row. This is a bit
@@ -1997,12 +1996,36 @@ qx.Class.define("smart.model.Default",
 
       for (var v = 0; v < this.__views.length; v++)
       {
+        // Get the view data
+        var viewData = this.__views[v];
+
+        // If there's a pre-remove rows function, call it now. Note that this
+        // is done before resetting the alternate row array, in case the
+        // pre-remove rows function needs access to that for some reason.
+        if (viewData.advanced.fPreRemoveRows)
+        {
+          viewData.advanced.fPreRemoveRows.call(viewData.context,
+                                                v,
+                                                this.getRowArray(v, false),
+                                                rows,
+                                                this);
+        }
+
         // Reset the alternate row array. If the view requires it, the view's
-        // pre- or post-insert function will deal with recreating it.
+        // post-remove function will deal with recreating it.
         this.setAlternateRowArray(v, null);
         
         // Now remove the rows for this view
         this.__removeRows(v, rows);
+
+        // If there's a post-remove rows function, call it now
+        if (viewData.advanced.fPostRemoveRows)
+        {
+          viewData.advanced.fPostRemoveRows.call(viewData.context,
+                                                 view,
+                                                 this.getRowArray(view),
+                                                 this);
+        }
       }
       
       this.__restoreSelection();
