@@ -1862,7 +1862,7 @@ qx.Class.define("smart.model.Default",
       }
 
       // Assign a unique ID to each row
-      this.__assignRowIDs(A);
+      this.assignRowIDs(A);
 
       // Sort the list of rows to be added
       var comparator = this.getComparator();
@@ -2045,28 +2045,62 @@ qx.Class.define("smart.model.Default",
       this.__notifyDataChanged();
     },
 
-  //
-  // TBD: Map versions of row update methods
-  //
-  // NOTE: use Simple::_mapArray2RowArr : function(mapArr, rememberMaps)
-  //
+    
+    /**
+     * Get the unique identifier of a row.
+     *
+     * @param row {Array}
+     *   A row which has already been added to the data model
+     *
+     * @return {Integer}
+     *   The unique identifer of the specified row
+     */
+    getRowId : function(row)
+    {
+      return row.__id;
+    },
 
-  //
-  // FILTERING METHODS
-  //
 
-  // Test whether a row or set or rows would be allowed in a particular
-  // view.
-  //
-  // If single is true, then R must be a single row, and this returns true
-  // (allowed) or false (filtered out).
-  //
-  // If single is false, then R must be an array of rows, and this returns a
-  // new array containing references to the rows that the filters allow. We
-  // share the reference to the row data. This means there's really a single
-  // copy of the rowdata, but it may be shared by multiple views.
-  __testAllFilters: function(view, R, single)
-  {
+    /**
+     * Get a row given its unique identifier
+     *
+     * @param view {Integer} 
+     *   The view in which to find the row
+     *
+     * @param id {Integer}
+     *   The requested row's unique identifier
+     *
+     * @return {Array}
+     *   The row associated with the specified unique identifier
+     */
+    getRowById : function(view, id)
+    {
+      return this.getRowArray(view, false)[this.__views[view].associations[id]];
+    },
+
+
+    //
+    // TBD: Map versions of row update methods
+    //
+    // NOTE: use Simple::_mapArray2RowArr : function(mapArr, rememberMaps)
+    //
+
+    //
+    // FILTERING METHODS
+    //
+
+    // Test whether a row or set or rows would be allowed in a particular
+    // view.
+    //
+    // If single is true, then R must be a single row, and this returns true
+    // (allowed) or false (filtered out).
+    //
+    // If single is false, then R must be an array of rows, and this returns a
+    // new array containing references to the rows that the filters allow. We
+    // share the reference to the row data. This means there's really a single
+    // copy of the rowdata, but it may be shared by multiple views.
+    __testAllFilters: function(view, R, single)
+    {
       if (single === undefined)
       {
         single = true;
@@ -2175,7 +2209,7 @@ qx.Class.define("smart.model.Default",
     //
     // ROW ASSOCIATION MAPS
     //
-    __ID: 0,	// the next row ID
+    __ID: 1,	// the next row ID
 
     /**
      * Assign a unique ID to each row in the provided array. This ID will
@@ -2187,7 +2221,7 @@ qx.Class.define("smart.model.Default",
      * an array is decended from a JavaScript Object, you can add
      * (non-numerical) properties to them.
      */
-    __assignRowIDs: function(A)
+    assignRowIDs: function(A)
     {
       for (var i = 0; i < A.length; i++)
       {
