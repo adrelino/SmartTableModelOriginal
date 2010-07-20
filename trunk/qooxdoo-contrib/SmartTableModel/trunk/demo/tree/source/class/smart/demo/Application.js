@@ -197,23 +197,23 @@ qx.Class.define("smart.demo.Application",
           return 0;
         },
         
-        postInsertRows : function(view, srcRowArr, dm)
+        postInsertRows : function(view, srcRowArr, newRows, dm)
         {
           var node;
           var nodeId;
           var nodeArr;
           
           // (Re-)Create the node array for this view
-          nodeArr = dm.initTree(view);
+          nodeArr = dm.getNodeArray(view) || dm.initTree(view);
           
           // The initial parent node id is the root, id 0
           var parentNodeId = 0;
 
           // For each row of data...
-          for (var i = 0; i < srcRowArr.length; i++)
+          for (var i = 0; i < newRows.length; i++)
           {
             // Get a reference to this row for fast access
-            var row = srcRowArr[i];
+            var row = newRows[i];
 
             // Get a reference to the "extra" data for this row
             var extra = row[this.columns["Extra"]];
@@ -274,23 +274,23 @@ qx.Class.define("smart.demo.Application",
         }
         ,
         
-        postInsertRows : function(view, srcRowArr, dm)
+        postInsertRows : function(view, srcRowArr, newRows, dm)
         {
           var node;
           var nodeArr;
           
           // (Re-)Create the node array for this view
-          nodeArr = dm.initTree(view);
+          nodeArr = dm.getNodeArray(view) || dm.initTree(view);
           
           // The initial parent node id is the root, id 0
           var parentNodeId = 0;
           var parentRowId;
 
           // For each row of data...
-          for (var i = 0; i < srcRowArr.length; i++)
+          for (var i = 0; i < newRows.length; i++)
           {
             // Get a reference to this row for fast access
-            var row = srcRowArr[i];
+            var row = newRows[i];
 
             // Find the message which is this message's parent
             // Is this message in reply to some previous one?
@@ -316,7 +316,7 @@ qx.Class.define("smart.demo.Application",
             parentNodeId = 
               (parentRowId === null || parentRowId === undefined
                ? 0
-               : parentRowId + 1);
+               : dm.getRowId(srcRowArr[parentRowId]));
 
             // Add this node to the tree
             dm.addBranch(view,
@@ -847,8 +847,10 @@ qx.Class.define("smart.demo.Application",
           }
         }
         
+        var INITIAL = 50;
+
         var nextBottom = 2;
-        addMessages(50, 2, nextBottom);
+        addMessages(INITIAL, 2, nextBottom);
         ++nextBottom;
 
         // Create a button to add a row
@@ -865,7 +867,7 @@ qx.Class.define("smart.demo.Application",
                            {
                              var dm = this.table.getDataModel();
                              data = [];
-                             for (var i = 1; i < 50; i++)
+                             for (var i = 1; i <= INITIAL; i++)
                              {
                                addMessage(i, 1, nextBottom);
                              }

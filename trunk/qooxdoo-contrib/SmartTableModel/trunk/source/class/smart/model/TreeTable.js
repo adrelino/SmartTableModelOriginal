@@ -53,7 +53,7 @@ qx.Class.define("smart.model.TreeTable",
      */
     initTree : function(view)
     {
-      var nodeArr = [ qx.ui.treevirtual.MTreePrimitive._getEmptyTree() ];
+      var nodeArr = { 0 : qx.ui.treevirtual.MTreePrimitive._getEmptyTree() };
       var rowArray = this.getRowArray(view, false);
       
       // Save the initial tree array as a property of the row array
@@ -134,7 +134,9 @@ qx.Class.define("smart.model.TreeTable",
           bOpened,
           bHideOpenCloseButton,
           qx.ui.treevirtual.MTreePrimitive.Type.BRANCH,
-          icon);
+          icon,
+          null,
+          rowId);
       
       var node = nodeArr[nodeId];
 
@@ -198,7 +200,9 @@ qx.Class.define("smart.model.TreeTable",
           false,
           false,
           qx.ui.treevirtual.MTreePrimitive.Type.LEAF,
-          icon);
+          icon,
+          null,
+          rowId);
 
       // Save the row index
       nodeArr[nodeId].rowId = rowId;
@@ -575,8 +579,19 @@ qx.Class.define("smart.model.TreeTable",
         // Retrieve the source row id
         var srcRowId = child.rowId;
 
+        // Retrieve this child. First see if it's available in the current
+        // view, which allows for view-added rows like header rows.
+        var rowToAdd = this.getRowById(view, srcRowId);
+        
+        // Was it found?
+        if (rowToAdd === undefined)
+        {
+          // Nope. Retrieve it from view 0.
+          rowToAdd = this.getRowById(0, srcRowId);
+        }
+
         // Add this child to the row data array
-        destRowArr.push(this.getRowById(view, srcRowId));
+        destRowArr.push(rowToAdd);
         
         // Reassign to store the destination row index
         child.__rowIndex = destRowArr.length;
