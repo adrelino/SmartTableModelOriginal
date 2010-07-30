@@ -24,6 +24,19 @@ qx.Class.define("smart.addons.TreeWithViewMenu",
 {
   extend : smart.addons.AbstractTree,
   
+  construct : function(dm, custom)
+  {
+    this.base(arguments, dm, custom);
+    
+    // We want our own header renderer for each column
+    var tcm = this.getTableColumnModel();
+    var numColumns = dm.getColumnCount();
+    for (var col = 0; col < numColumns; col++)
+    {
+      tcm.setHeaderCellRenderer(col, new smart.headerrenderer.MultiView());
+    }
+  },
+
   properties :
   {
     /** Whether to display view abbreviation in the header */
@@ -234,13 +247,6 @@ qx.Class.define("smart.addons.TreeWithViewMenu",
         menuButton.setShow(value ? "both" : "icon");
       }      
     }
-  },
-  
-  defer : function()
-  {
-    // Ensure that we use our MultiView header renderer instead of the default
-    qx.ui.table.columnmodel.Basic.DEFAULT_HEADER_RENDERER =
-      smart.headerrenderer.MultiView;
   }
 });
 
