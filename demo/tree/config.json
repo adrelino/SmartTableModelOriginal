@@ -37,6 +37,7 @@
     "CACHE"        : "${TMPDIR}/cache",
     "ROOT"         : ".",
     /* disable "privates" optimization in build version due to current issues */
+//    "OPTIMIZE"     : []
     "OPTIMIZE"     : ["variables", "basecalls", "strings"]
   },
 
