@@ -1497,7 +1497,7 @@ qx.Class.define("smart.model.Default",
         // If this value is in the sort column, we have to remove this row
         // and reinsert it to maintain the sort.
         reinsert = (this.isSorted() &&
-                    (columnIndex === this.__sortColumnIndex));
+                    (columnIndex === this.getSortColumnIndex()));
       }
       else
       {
@@ -1523,7 +1523,7 @@ qx.Class.define("smart.model.Default",
 
         // If any set value is in the sort column, we have to reinsert this
         // row to maintain the sort.
-        if (this.isSorted() && V.length >= this.__sortColumnIndex)
+        if (this.isSorted() && V.length >= this.getSortColumnIndex())
         {
           reinsert = true;
         }
@@ -2436,12 +2436,12 @@ qx.Class.define("smart.model.Default",
     {
       if (columnIndex === undefined)
       {
-        columnIndex = this.__sortColumnIndex;
+        columnIndex = this.getSortColumnIndex();
       }
       
       if (ascending === undefined)
       {
-        ascending = this.__sortAscending;
+        ascending = this.isSortAscending();
       }
 
       var comparator;
@@ -2487,9 +2487,9 @@ qx.Class.define("smart.model.Default",
 
       // If only the ascending boolean is changing, then we can do O(n) work
       // instead of O(n lg n) work just by reversing the array.
-      if (!force && this.__sortColumnIndex == columnIndex)
+      if (!force && this.getSortColumnIndex() == columnIndex)
       {
-        if (this.__sortAscending == ascending)
+        if (this.isSortAscending() == ascending)
         {
           return; // no change to sort at all: O(1)
         }
@@ -2500,7 +2500,7 @@ qx.Class.define("smart.model.Default",
           this.getRowArray(v).reverse();
         }
 
-        this.__sortAscending = ascending;
+        this._setSortAscending(ascending);
       }
       else
       {
@@ -2509,8 +2509,8 @@ qx.Class.define("smart.model.Default",
         //
 
         // Record how we're now sorted and get the new comparator
-        this.__sortColumnIndex = columnIndex;
-        this.__sortAscending = ascending;
+        this._setSortColumnIndex(columnIndex);
+        this._setSortAscending(ascending);
 
         var comparator = this.getComparator();
         comparator.columnIndex = columnIndex;
@@ -2538,8 +2538,8 @@ qx.Class.define("smart.model.Default",
     {
       if (this.isSorted())
       {
-        this.sortByColumn(this.__sortColumnIndex,
-                          this.__sortAscending,
+        this.sortByColumn(this.getSortColumnIndex(),
+                          this.isSortAscending(),
                           /*force:*/ true);
       }
     },
@@ -2551,7 +2551,7 @@ qx.Class.define("smart.model.Default",
 
       // If we're currently sorted and the comparator has changed for the
       // column we're sorted on, force a full re-sort.
-      if (columnIndex == this.__sortColumnIndex)
+      if (columnIndex == this.getSortColumnIndex())
       {
         this._resort();
       }
