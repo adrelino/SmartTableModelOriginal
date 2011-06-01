@@ -338,15 +338,29 @@ qx.Class.define("smart.demo.Application",
     // The main entry point for the demo
     main: function() 
     {
+      var appender;
+      
       // Call super class
       this.base(arguments);
 
       // Enable logging in debug variant
-      if (qx.core.Variant.isSet("qx.debug", "on")) 
+      if (typeof(qx.core.Variant) !== "undefined")
       {
-        var appender;
-	appender = qx.log.appender.Native;
-	appender = qx.log.appender.Console;
+        if (qx.core["Variant"].isSet("qx.debug", "on")) 
+        {
+          appender = qx.log.appender.Native;
+          appender = qx.log.appender.Console;
+        }
+      }
+
+      // Enable logging in debug environment
+      if (typeof(qx.core.Environment) !== "undefined")
+      {
+        if (qx.core["Environment"].get("qx.debug")) 
+        {
+          appender = qx.log.appender.Native;
+          appender = qx.log.appender.Console;
+        }
       }
 
       //

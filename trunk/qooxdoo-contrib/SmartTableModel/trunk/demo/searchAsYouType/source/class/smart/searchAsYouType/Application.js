@@ -74,14 +74,29 @@ qx.Class.define("smart.searchAsYouType.Application",
      */
     main : function()
     {
+      var appender;
+
       // Call super class
       this.base(arguments);
                       
       // Enable logging in debug variant
-      if (qx.core.Variant.isSet("qx.debug", "on")) {
-        var appender;
-        appender = qx.log.appender.Native;
-        appender = qx.log.appender.Console;
+      if (typeof(qx.core.Variant) !== "undefined")
+      {
+        if (qx.core["Variant"].isSet("qx.debug", "on")) 
+        {
+          appender = qx.log.appender.Native;
+          appender = qx.log.appender.Console;
+        }
+      }
+                      
+      // Enable logging in debug environment
+      if (typeof(qx.core.Environment) !== "undefined")
+      {
+        if (qx.core["Environment"].get("qx.debug")) 
+        {
+          appender = qx.log.appender.Native;
+          appender = qx.log.appender.Console;
+        }
       }
                       
       // Create a smart table model
@@ -89,7 +104,7 @@ qx.Class.define("smart.searchAsYouType.Application",
                       
       // Set the columns
       var column_names = [];
-      for (key in this.columns)
+      for (var key in this.columns)
       {
         column_names[this.columns[key]] = key;
       }
