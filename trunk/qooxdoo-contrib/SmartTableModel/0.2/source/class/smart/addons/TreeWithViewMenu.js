@@ -106,23 +106,10 @@ qx.Class.define("smart.addons.TreeWithViewMenu",
         var viewData = viewSelectionData[col][i];
         
         // Validate some input
-        if (typeof(qx.core.Variant) !== "undefined")
+        if (qx.core.Environment.get("qx.debug")) 
         {
-          if (qx.core["Variant"].isSet("qx.debug", "on")) 
-          {
-            this.assertNumber(viewData.view);
-            this.assertString(viewData.abbrev);
-          }
-        }
-
-        // Validate some input
-        if (typeof(qx.core.Environment) !== "undefined")
-        {
-          if (qx.core.Environment.get("qx.debug")) 
-          {
-            this.assertNumber(viewData.view);
-            this.assertString(viewData.abbrev);
-          }
+          this.assertNumber(viewData.view);
+          this.assertString(viewData.abbrev);
         }
 
         // Create the menu button

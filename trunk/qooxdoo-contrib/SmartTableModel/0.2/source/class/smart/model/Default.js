@@ -1840,24 +1840,11 @@ qx.Class.define("smart.model.Default",
      */
     addRows: function(rowArr, copy, fireEvent)
     {
-      if (typeof(qx.core.Variant) !== "undefined")
+      if (qx.core.Environment.get("qx.debug"))
       {
-        if (qx.core["Variant"].isSet("qx.debug", "on"))
-        {
-          this.assertArray(rowArr[0],
-                           "SmartTableModel.setData(): " +
-                           "parameter must be an array of arrays.");
-        }
-      }
-      
-      if (typeof(qx.core.Environment) !== "undefined")
-      {
-        if (qx.core["Environment"].get("qx.debug"))
-        {
-          this.assertArray(rowArr[0],
-                           "SmartTableModel.setData(): " +
-                           "parameter must be an array of arrays.");
-        }
+        this.assertArray(rowArr[0],
+                         "SmartTableModel.setData(): " +
+                         "parameter must be an array of arrays.");
       }
       
       if (copy === undefined)
@@ -2649,25 +2636,11 @@ qx.Class.define("smart.model.Default",
     // Debug message
     __debug: function(msg)
     {
-      if (typeof(qx.core.Variant) !== "undefined")
+      if (qx.core["Environment"].get("qx.debug"))
       {
-        if (qx.core["Variant"].isSet("qx.debug", "on"))
+        if (this.___debug)
         {
-          if (this.___debug)
-          {
-            this.debug(msg);
-          }
-        }
-      }
-
-      if (typeof(qx.core.Environment) !== "undefined")
-      {
-        if (qx.core["Environment"].get("qx.debug"))
-        {
-          if (this.___debug)
-          {
-            this.debug(msg);
-          }
+          this.debug(msg);
         }
       }
     },
