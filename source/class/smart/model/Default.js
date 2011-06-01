@@ -361,7 +361,7 @@ qx.Class.define("smart.model.Default",
      *     fPreRemoveRows
      *       A function which is called when rows are about to be removed. It
      *       is passed four parameters: the view, the existing row array for
-     *       the view, the array of rows to be inserted, and a reference to
+     *       the view, the array of rows to be removed, and a reference to
      *       the data model. This function is called before invalidating the
      *       alternate row array, in case the function has need for the old
      *       data stored there.
@@ -369,7 +369,7 @@ qx.Class.define("smart.model.Default",
      *     fPostRemoveRows
      *       A function which is called after a set of rows has been
      *       removed. It is passed four parameters: the view, the existing
-     *       row array for the view, the array of rows being inserted, and a
+     *       row array for the view, the array of rows being removed, and a
      *       reference to the data model.
      *
      * @return {Object}
@@ -1840,13 +1840,26 @@ qx.Class.define("smart.model.Default",
      */
     addRows: function(rowArr, copy, fireEvent)
     {
-      if (qx.core.Variant.isSet("qx.debug", "on"))
+      if (typeof(qx.core.Variant) !== "undefined")
       {
-        this.assertArray(rowArr[0],
-                         "SmartTableModel.setData(): " +
-                         "parameter must be an array of arrays.");
+        if (qx.core["Variant"].isSet("qx.debug", "on"))
+        {
+          this.assertArray(rowArr[0],
+                           "SmartTableModel.setData(): " +
+                           "parameter must be an array of arrays.");
+        }
       }
-
+      
+      if (typeof(qx.core.Environment) !== "undefined")
+      {
+        if (qx.core["Environment"].get("qx.debug"))
+        {
+          this.assertArray(rowArr[0],
+                           "SmartTableModel.setData(): " +
+                           "parameter must be an array of arrays.");
+        }
+      }
+      
       if (copy === undefined)
       {
         copy = true;
@@ -2038,8 +2051,8 @@ qx.Class.define("smart.model.Default",
         if (viewData.advanced.fPostRemoveRows)
         {
           viewData.advanced.fPostRemoveRows.call(viewData.context,
-                                                 view,
-                                                 this.getRowArray(view),
+                                                 v,
+                                                 this.getRowArray(v),
                                                  this);
         }
       }
@@ -2636,11 +2649,25 @@ qx.Class.define("smart.model.Default",
     // Debug message
     __debug: function(msg)
     {
-      if (qx.core.Variant.isSet("qx.debug", "on"))
+      if (typeof(qx.core.Variant) !== "undefined")
       {
-        if (this.___debug)
+        if (qx.core["Variant"].isSet("qx.debug", "on"))
         {
-          this.debug(msg);
+          if (this.___debug)
+          {
+            this.debug(msg);
+          }
+        }
+      }
+
+      if (typeof(qx.core.Environment) !== "undefined")
+      {
+        if (qx.core["Environment"].get("qx.debug"))
+        {
+          if (this.___debug)
+          {
+            this.debug(msg);
+          }
         }
       }
     },

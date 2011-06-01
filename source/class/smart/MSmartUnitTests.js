@@ -60,7 +60,7 @@ qx.Mixin.define("smart.MSmartUnitTests", {
 
 	    __unitTest: function () {
 		var i, failed = false;
-		var model = new smart.Smart();
+		var model = new smart.model.Default();
 
 		// Establish columns
 		var columns = { "number": 0, "string": 1, "object": 2, "function": 3, "random": 4 };

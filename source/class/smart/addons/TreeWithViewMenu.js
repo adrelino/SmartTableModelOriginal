@@ -106,10 +106,23 @@ qx.Class.define("smart.addons.TreeWithViewMenu",
         var viewData = viewSelectionData[col][i];
         
         // Validate some input
-        if (qx.core.Variant.isSet("qx.debug", "on")) 
+        if (typeof(qx.core.Variant) !== "undefined")
         {
-          this.assertNumber(viewData.view);
-          this.assertString(viewData.abbrev);
+          if (qx.core["Variant"].isSet("qx.debug", "on")) 
+          {
+            this.assertNumber(viewData.view);
+            this.assertString(viewData.abbrev);
+          }
+        }
+
+        // Validate some input
+        if (typeof(qx.core.Environment) !== "undefined")
+        {
+          if (qx.core.Environment.get("qx.debug")) 
+          {
+            this.assertNumber(viewData.view);
+            this.assertString(viewData.abbrev);
+          }
         }
 
         // Create the menu button
@@ -172,7 +185,7 @@ qx.Class.define("smart.addons.TreeWithViewMenu",
       var bShowAbbreviations = this.getShowAbbreviations();
 
       // For each column...
-      for (col in this.__columnViewButtonMap)
+      for (var col in this.__columnViewButtonMap)
       {
         // Retrieve the menu button for this column
         var menuButton = this.__columnViewButtonMap[col];
@@ -241,7 +254,7 @@ qx.Class.define("smart.addons.TreeWithViewMenu",
     _applyShowAbbreviations : function(value, old)
     {
       // For each column...
-      for (col in this.__columnViewButtonMap)
+      for (var col in this.__columnViewButtonMap)
       {
         // Retrieve the menu button for this column
         var menuButton = this.__columnViewButtonMap[col];

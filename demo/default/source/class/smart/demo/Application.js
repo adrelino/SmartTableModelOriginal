@@ -113,11 +113,25 @@ qx.Class.define("smart.demo.Application",
       this.base(arguments);
 
       // Enable logging in debug variant
-      if (qx.core.Variant.isSet("qx.debug", "on"))
+      if (typeof(qx.core.Variant) !== "undefined")
       {
-        var appender;
-        appender = qx.log.appender.Native;
-        appender = qx.log.appender.Console;
+        if (qx.core["Variant"].isSet("qx.debug", "on"))
+        {
+          var appender;
+          appender = qx.log.appender.Native;
+          appender = qx.log.appender.Console;
+        }
+      }
+
+      // Enable logging in debug environment
+      if (typeof(qx.core.Environment) !== "undefined")
+      {
+        if (qx.core["Environment"].get("qx.debug"))
+        {
+          var appender;
+          appender = qx.log.appender.Native;
+          appender = qx.log.appender.Console;
+        }
       }
 
       //
