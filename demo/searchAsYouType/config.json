@@ -30,7 +30,7 @@
   "let" :
   {
     "APPLICATION"  : "smart.searchAsYouType",
-    "QOOXDOO_PATH" : "../../../../qooxdoo/trunk",
+    "QOOXDOO_PATH" : "../../../qooxdoo/",
     "API_EXCLUDE"  : ["qx.legacy.*","qx.test.*"],
     "LOCALES"      : [ "en" ],
     "CACHE"        : "${TMPDIR}/cache",

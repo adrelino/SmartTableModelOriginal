@@ -30,7 +30,7 @@
   "let" :
   {
     "APPLICATION"  : "smart.demo",
-    "QOOXDOO_PATH" : "../../../../qooxdoo/trunk",
+    "QOOXDOO_PATH" : "../../../qooxdoo",
     "QXTHEME"      : "smart.theme.modern.Theme",
     "API_EXCLUDE"  : ["qx.legacy.*","qx.test.*"],
     "LOCALES"      : [ "en" ],
@@ -51,7 +51,7 @@
           "manifest" : "../../Manifest.json"
         },
         {
-          "manifest" : "../../../../TimezoneDate/trunk/Manifest.json"
+          "manifest" : "../../../TimezoneDate/Manifest.json"
         }
       ]
     }

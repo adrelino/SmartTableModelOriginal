@@ -30,7 +30,7 @@
   "let" :
   {
     "APPLICATION"  : "smart.demo",
-    "QOOXDOO_PATH" : "../../../../qooxdoo/1.0.1",
+    "QOOXDOO_PATH" : "../../../qooxdoo/",
     "QXTHEME"      : "smart.demo.theme.Theme",
     "API_EXCLUDE"  : ["qx.legacy.*","qx.test.*"],
     "LOCALES"      : [ "en" ],
