@@ -155,7 +155,7 @@ qx.Class.define("smart.selection.Manager",
       // If the cell hasn't been focused automatically...
       if (evt instanceof qx.event.type.Mouse)
       {
-        if (! tree.getFocusCellOnMouseMove())
+        if (! tree.getFocusCellOnPointerMove())
         {
           // ... then focus it now so we can determine the node to open/close
           var scrollers = tree._getPaneScrollerArr();
