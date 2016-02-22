@@ -576,7 +576,7 @@ qx.Class.define("smart.model.TreeTable",
           parent = srcNodeArr[parent.parentNodeId];
         }
 
-        // Retrieve the source row id
+/*        // Retrieve the source row id
         var srcRowId = child.rowId;
 
         // Retrieve this child. First see if it's available in the current
@@ -588,7 +588,8 @@ qx.Class.define("smart.model.TreeTable",
         {
           // Nope. Retrieve it from view 0.
           rowToAdd = this.getRowById(0, srcRowId);
-        }
+        }*/
+        var rowToAdd = srcRowArr[childNodeId-1];
 
         // Add this child to the row data array
         destRowArr.push(rowToAdd);
