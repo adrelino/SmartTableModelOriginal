@@ -993,8 +993,20 @@ qx.Class.define("smart.model.Default",
         throw new Error("this.__rowArr out of bounds: " + rowIndex +
                         " (0.." + rows + ")");
       }
+
+      var arr = this.getRowArray(view);
+
+      var row = arr[rowIndex];
+
+      //2016-02-24: Adrian Fix. If we dont find in current view, we get it from view 0.
+      //Otherwise we get an array of [undefined, undefined, undefined] and row[columnIndex] fails!
+      if(!row){
+          arr2 = this.getRowArray(0);
+          row = arr2[rowIndex];
+      }
+
       
-      return this.getRowArray(view)[rowIndex][columnIndex];
+      return row[columnIndex];
     },
 
     /**
@@ -2298,7 +2310,10 @@ qx.Class.define("smart.model.Default",
           continue;
         }
         
-        var A = this.getRowArray(v);
+        //2016-02-24: fix by Adrian: getRowArray() of primary backing store, 
+        //because alternate is emptied before this methdod is called
+        //call originates from clearAllRows
+        var A = this.getRowArray(v,false/*alternate backing store*/);
 
         // Clear the current association map
         if (index === undefined)
