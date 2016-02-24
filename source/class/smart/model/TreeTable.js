@@ -493,6 +493,7 @@ qx.Class.define("smart.model.TreeTable",
           // Rebuild the table since formerly visible rows may now be
           // invisible, or vice versa.
           this.buildTableFromTree(view);
+          this.fireEvent("treeOpenClose");
           break;
 
         default:
