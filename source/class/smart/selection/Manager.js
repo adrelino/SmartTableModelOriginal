@@ -42,6 +42,10 @@ qx.Class.define("smart.selection.Manager",
     this.__table = table;
   },
 
+  events : {
+    "cellTapOnAtom" : "qx.event.type.Data"
+  },
+
 
 
   members :
@@ -112,6 +116,7 @@ qx.Class.define("smart.selection.Manager",
      */
     _handleExtendedClick : function(tree, evt, node, left)
     {
+      this.fireDataEvent("cellTapOnAtom",node);
       return false;
     },
     
@@ -198,16 +203,23 @@ qx.Class.define("smart.selection.Manager",
         var x = evt.getViewportLeft();
         var latitude = 2;
 
-        var buttonPos = left + (node.level - 1) * 19 + 2;
+        var buttonPos = left + 19 + (node.level - 1) * 31;
 
-        if (x >= buttonPos - latitude && x <= buttonPos + 19 + latitude)
+        this.debug("buttonPos",x,buttonPos,x<buttonPos);
+
+
+        if (/*x >= buttonPos - latitude &&*/ x <= buttonPos)// + 19 + latitude)
         {
+          this.debug("click on tree open/close");
+          evt.stopPropagation();
+
           // Yup.  Toggle the opened state for this node.
           dataModel.setState(node, { bOpened : ! node.bOpened });
           return tree.getOpenCloseClickSelectsRow() ? false : true;
         }
         else
         {
+          this.debug("click on tree icon/label");
           return this._handleExtendedClick(tree, evt, node, left);
         }
       }
