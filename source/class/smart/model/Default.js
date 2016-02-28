@@ -2097,6 +2097,7 @@ qx.Class.define("smart.model.Default",
         this._updateAssociationMaps();
         this.__notifyDataChanged();
       }
+      this.__ID = 1;
     },
 
     /**
