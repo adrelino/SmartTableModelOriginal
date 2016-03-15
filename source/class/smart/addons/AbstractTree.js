@@ -69,6 +69,11 @@ qx.Class.define("smart.addons.AbstractTree",
 
     // refresh the scroller and empty space whenever we open / close a node
     dm.addListener("treeOpenClose",function(){
+      var scrollerArr2 = this._getPaneScrollerArr();
+      scrollerArr2.forEach(function(scroller){
+//         scroller.fireEvent("resize");
+        scroller.updateVerScrollBarMaximum();
+      },this);
       this._updateScrollBarVisibility();
       this._updateStatusBar();
     },this);
