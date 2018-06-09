@@ -1001,7 +1001,7 @@ qx.Class.define("smart.model.Default",
       //2016-02-24: Adrian Fix. If we dont find in current view, we get it from view 0.
       //Otherwise we get an array of [undefined, undefined, undefined] and row[columnIndex] fails!
       if(!row){
-          arr2 = this.getRowArray(0);
+          var arr2 = this.getRowArray(0);
           row = arr2[rowIndex];
       }
 
