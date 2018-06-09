@@ -1852,7 +1852,7 @@ qx.Class.define("smart.model.Default",
      */
     addRows: function(rowArr, copy, fireEvent)
     {
-      if (typeof(qx.core.Variant) !== "undefined")
+      /*if (typeof(qx.core.Variant) !== "undefined")
       {
         if (qx.core["Variant"].isSet("qx.debug", "on"))
         {
@@ -1860,7 +1860,7 @@ qx.Class.define("smart.model.Default",
                            "SmartTableModel.setData(): " +
                            "parameter must be an array of arrays.");
         }
-      }
+      }*/
       
       if (typeof(qx.core.Environment) !== "undefined")
       {
@@ -2665,7 +2665,7 @@ qx.Class.define("smart.model.Default",
     // Debug message
     __debug: function(msg)
     {
-      if (typeof(qx.core.Variant) !== "undefined")
+      /*if (typeof(qx.core.Variant) !== "undefined")
       {
         if (qx.core["Variant"].isSet("qx.debug", "on"))
         {
@@ -2674,7 +2674,7 @@ qx.Class.define("smart.model.Default",
             this.debug(msg);
           }
         }
-      }
+      }*/
 
       if (typeof(qx.core.Environment) !== "undefined")
       {
