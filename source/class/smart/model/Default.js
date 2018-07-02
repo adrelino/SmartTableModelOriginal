@@ -2500,7 +2500,12 @@ qx.Class.define("smart.model.Default",
       }
 
       comparator.columnIndex = columnIndex;
-      return comparator;
+      //Bugfix for change in qooxdoo 6 alpha, arguments.callee was removed, so capture columnIndex via closure instead!
+      //https://github.com/qooxdoo/qooxdoo/commit/fc8bf091e69a06c3582098634d5456b449069889#diff-a0667949782eb10e36f4fc32a5a43247R333
+      //https://github.com/qooxdoo/qooxdoo/blob/97418ba9a62fed5eb00efbbac5190fdde66ed24b/framework/source/class/qx/ui/table/model/Simple.js#L333-L335
+      return function(row1,row2){
+        return comparator(row1,row2,comparator.columnIndex); //TODO: comparator.isShiftPressed()
+      };
     },
 
     // overridden
