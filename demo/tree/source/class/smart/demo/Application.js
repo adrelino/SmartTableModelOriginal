@@ -21,6 +21,9 @@
 
 ************************************************************************ */
 
+var timezonedate = {
+  TimezoneDate : Date
+}
 /**
  * Smart table model demo: customer service order tracker.
  */

@@ -1,3 +1,9 @@
 demo/default/source/script/
 demo/searchAsYouType/source/script/
 demo/tree/source/script/
+
+demo/default/source-output/
+demo/searchAsYouType/source-output/
+demo/tree/source-output/
+
+source-output
