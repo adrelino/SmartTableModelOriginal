@@ -1852,25 +1852,6 @@ qx.Class.define("smart.model.Default",
      */
     addRows: function(rowArr, copy, fireEvent)
     {
-      /*if (typeof(qx.core.Variant) !== "undefined")
-      {
-        if (qx.core["Variant"].isSet("qx.debug", "on"))
-        {
-          this.assertArray(rowArr[0],
-                           "SmartTableModel.setData(): " +
-                           "parameter must be an array of arrays.");
-        }
-      }*/
-      
-      if (typeof(qx.core.Environment) !== "undefined")
-      {
-        if (qx.core["Environment"].get("qx.debug"))
-        {
-          this.assertArray(rowArr[0],
-                           "SmartTableModel.setData(): " +
-                           "parameter must be an array of arrays.");
-        }
-      }
       
       if (copy === undefined)
       {
@@ -1885,6 +1866,17 @@ qx.Class.define("smart.model.Default",
       if (!rowArr || rowArr.length == 0)
       {
         return;
+      }
+
+      //moved here because rowArr can also be null
+      if (typeof(qx.core.Environment) !== "undefined")
+      {
+        if (qx.core["Environment"].get("qx.debug"))
+        {
+          this.assertArray(rowArr[0],
+                           "SmartTableModel.setData(): " +
+                           "parameter must be an array of arrays.");
+        }
       }
 
       // Save the indexed selection
@@ -2576,7 +2568,7 @@ qx.Class.define("smart.model.Default",
     //override
     setSortMethods: function(columnIndex, methods)
     {
-      arguments.callee.base.apply(this, arguments);
+      this.base(arguments,columnIndex,methods);
 
       // If we're currently sorted and the comparator has changed for the
       // column we're sorted on, force a full re-sort.
