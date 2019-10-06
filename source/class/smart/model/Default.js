@@ -2710,6 +2710,16 @@ qx.Class.define("smart.model.Default",
         
         this.__debug("..." + prop + ": " + obj[prop]);
       }
+    },
+
+    getSelectionAsIndexArr: function(){
+      this.__saveSelection();
+      return this.__selectedRows;
+    },
+
+    setSelectionAsIndexArr: function(arr){
+      this.__selectedRows = arr;
+      this.__restoreSelection();
     }
   },
 
