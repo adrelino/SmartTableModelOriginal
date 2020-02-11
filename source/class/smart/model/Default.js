@@ -2061,12 +2061,13 @@ qx.Class.define("smart.model.Default",
         }
       }
       
-      this.__restoreSelection();
-
       if (fireEvent)
       {
         this.__notifyDataChanged();
       }
+
+      this.__restoreSelection();
+
     },
 
     /**
