@@ -151,6 +151,54 @@ qx.Class.define("smart.model.Default",
     __backingstore : null,
     __alternate_backingstore : null,
     __table : null,
+    __stack_limit_push_apply : 10000, //conservative guess
+    
+    __computeExactStackLimit: function () {
+      //https://2ality.com/2014/04/call-stack-size.html
+      function computeMaxCallStackSize() {
+        try {
+          return 1 + computeMaxCallStackSize();
+        } catch (e) {
+          // Call stack overflow
+          return 1;
+        }
+      }
+
+      //https://stackoverflow.com/questions/7826992/browser-javascript-stack-size-limit
+      function computeMaxCallStackSize2() {
+        var i = 0;
+        function inc() {
+          i++;
+          inc();
+        }
+        try {
+          inc();
+        } catch (e) {
+
+        }
+        return i;
+      }
+
+      function computeMaxCallStackSizePushApply() {
+        var A = [];
+        var rows = [];
+        for (var j = 0; j < 10; j++) {
+          for (var i = 0; i < 100000; i++) {
+            rows.push(i);
+          }
+          try {
+            A.push.apply(A, rows);
+          } catch (e) {
+            return rows.length;
+          }
+        }
+        return rows.length;
+      }
+
+      //var stack_limit = computeMaxCallStackSize();
+      //var stack_limit2 = computeMaxCallStackSize2();
+      this.__stack_limit_push_apply = computeMaxCallStackSizePushApply();
+    },
 
     // overridden
     init : function(table)
@@ -1165,7 +1213,16 @@ qx.Class.define("smart.model.Default",
       var prior_len = A.length;
 
       // Actually push the new rows onto the array
+      var rows_len = rows.length;
+      if(rows_len <= this.__stack_limit_push_apply){ //only works if rows has less than stack size limit entries
       A.push.apply(A, rows);
+      }else{
+        //https://jsperf.com/merge-array-implementations/1
+        A.length = prior_len + rows.length;
+        for(var i = 0; i < rows_len; i++){
+          A[prior_len + i] = rows[i];
+        }
+      }
 
       if (updateAssociationMaps)
       {
