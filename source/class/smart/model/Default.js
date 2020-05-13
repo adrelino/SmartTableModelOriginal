@@ -151,7 +151,7 @@ qx.Class.define("smart.model.Default",
     __backingstore : null,
     __alternate_backingstore : null,
     __table : null,
-    __stack_limit_push_apply : 10000, //conservative guess
+    __stack_limit_push_apply : 100000, //100.000 because alternative is buggy
     
     __computeExactStackLimit: function () {
       //https://2ality.com/2014/04/call-stack-size.html
@@ -1217,8 +1217,8 @@ qx.Class.define("smart.model.Default",
       if(rows_len <= this.__stack_limit_push_apply){ //only works if rows has less than stack size limit entries
       A.push.apply(A, rows);
       }else{
-        //https://jsperf.com/merge-array-implementations/1
-        A.length = prior_len + rows.length;
+        //https://jsperf.com/merge-array-implementations/3
+        //A.length = prior_len + rows.length;  //in Firefox 79 it was faster to not set the new size first.
         for(var i = 0; i < rows_len; i++){
           A[prior_len + i] = rows[i];
         }
