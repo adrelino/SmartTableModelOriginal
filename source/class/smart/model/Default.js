@@ -2663,7 +2663,9 @@ qx.Class.define("smart.model.Default",
             //removeCount:
           };
         
-        this.fireDataEvent('dataChanged', data);
+          try{
+            this.fireDataEvent('dataChanged', data);
+          }catch(e){} //may throw an error we just ignore
       }
     },
 
