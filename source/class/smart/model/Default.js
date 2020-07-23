@@ -2526,7 +2526,7 @@ qx.Class.define("smart.model.Default",
       var comparator;
       var sortMethods = this.getSortMethods(columnIndex);
 
-      var Simple = qx.ui.table.model.Simple;
+      var Simple = smart.model.SimpleSortMethodsFixed;
       if (sortMethods)
       {
         comparator =
