@@ -44,19 +44,19 @@ qx.Class.define("smart.model.SimpleSortMethodsFixed",
      */
     _defaultSortComparatorInsensitiveAscending : function(row1, row2, columnIndex)
     {
-      var obj1 = (row1[columnIndex].toLowerCase ?
-            row1[columnIndex].toLowerCase() : row1[columnIndex]);
-      var obj2 = (row2[columnIndex].toLowerCase ?
-            row2[columnIndex].toLowerCase() : row2[columnIndex]);
-
+      var obj1 = row1[columnIndex];
+      var obj2 = row2[columnIndex];
+      if(obj1==null && obj2!==null) return -1;
+      if(obj2==null && obj1!==null) return 1;
+      if(obj2==null && obj1==null) return 0;
       if (qx.lang.Type.isNumber(obj1) && qx.lang.Type.isNumber(obj2)) {
         var result = isNaN(obj1) ? isNaN(obj2) ?  0 : 1 : isNaN(obj2) ? -1 : null;
         if (result != null) {
           return result;
         }
       }
-      if(obj1==null && obj2!==null) return -1;
-      if(obj2==null && obj1!==null) return 1;
+      obj1 = obj1.toLowerCase ? obj1.toLowerCase() : obj1;
+      obj2 = obj2.toLowerCase ? obj2.toLowerCase() : obj2;
       return (obj1 > obj2) ? 1 : ((obj1 == obj2) ? 0 : -1);
     },
 
@@ -98,18 +98,19 @@ qx.Class.define("smart.model.SimpleSortMethodsFixed",
      */
     _defaultSortComparatorInsensitiveDescending : function(row1, row2, columnIndex)
     {
-      var obj1 = (row1[columnIndex].toLowerCase ?
-          row1[columnIndex].toLowerCase() : row1[columnIndex]);
-      var obj2 = (row2[columnIndex].toLowerCase ?
-          row2[columnIndex].toLowerCase() : row2[columnIndex]);
+      var obj1 = row1[columnIndex];
+      var obj2 = row2[columnIndex];
+      if(obj1==null && obj2!==null) return 1;
+      if(obj2==null && obj1!==null) return -1;
+      if(obj2==null && obj1==null) return 0;
       if (qx.lang.Type.isNumber(obj1) && qx.lang.Type.isNumber(obj2)) {
         var result = isNaN(obj1) ? isNaN(obj2) ?  0 : 1 : isNaN(obj2) ? -1 : null;
         if (result != null) {
           return result;
         }
       }
-      if(obj1==null && obj2!==null) return 1;
-      if(obj2==null && obj1!==null) return -1;
+      obj1 = obj1.toLowerCase ? obj1.toLowerCase() : obj1;
+      obj2 = obj2.toLowerCase ? obj2.toLowerCase() : obj2;
       return (obj1 < obj2) ? 1 : ((obj1 == obj2) ? 0 : -1);
     }
   }
