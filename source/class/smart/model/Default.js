@@ -37,7 +37,7 @@
  *
  * Filtering is also maintained incrementally: we keep multiple views of the
  * data in "backing store", and can then select between them just by changing
- * this.__rowArr. We apply all modifications to all views -- for example, all
+ * this._rowArr. We apply all modifications to all views -- for example, all
  * copies are kept sorted, and rows are added and removed to/from all (subject
  * to filtering). This allows real-time switching between views.
  *
@@ -75,7 +75,7 @@ qx.Class.define("smart.model.Default",
      * addition, row removal, and sorting; this allows us to switch
      * between different views without re-sorting. The superclass
      * (qx.ui.table.model.Simple) will always see the
-     * currently-selected view as this.__rowArr.
+     * currently-selected view as this._rowArr.
      *
      * By default, there is a single backing store array stored in
      * slot zero. View zero is by definition always unfiltered, so if
@@ -211,7 +211,7 @@ qx.Class.define("smart.model.Default",
     },
 
     // This gets called when the view is changed or re-applied. It
-    // ensures that the __rowArr slot used by the Simple superclass
+    // ensures that the _rowArr slot used by the Simple superclass
     // never goes stale: that it always points to the right view. It
     // also saves the selection for the current view and restores it
     // for the new view, which causes the selection to be properly
@@ -242,10 +242,10 @@ qx.Class.define("smart.model.Default",
         this.__saveSelection(old);
 
       // Select the backing store array based on the new property value.
-      this.__rowArr = this.getRowArray(view);
+      this._rowArr = this.getRowArray(view);
 
 //      this.__debug("_applyView: new view has " +
-//                   this.__rowArr.length + " rows");
+//                   this._rowArr.length + " rows");
 
       // Inform the listeners that the entire table data has changed.
       if (fireEvent)
@@ -847,7 +847,7 @@ qx.Class.define("smart.model.Default",
 
       // If we're changing the base pointer to the current view, we need to
       // explicltly re-apply the view after we've changed it -- otherwise
-      // this.__rowArr will be stale.
+      // this._rowArr will be stale.
       if (view == this.getView())
       {
         reapply = true;
@@ -1038,7 +1038,7 @@ qx.Class.define("smart.model.Default",
       var rows = this.getRowCount(view);
       if (rowIndex < 0 || rowIndex >= rows)
       {
-        throw new Error("this.__rowArr out of bounds: " + rowIndex +
+        throw new Error("this._rowArr out of bounds: " + rowIndex +
                         " (0.." + rows + ")");
       }
 
