@@ -28,6 +28,10 @@ qx.Class.define("smart.model.TreeTable",
   // We'll make use of the tree-building code from treevirtual
   include : qx.ui.treevirtual.MTreePrimitive,
 
+  events : {
+    "treeOpenClose" : "qx.event.type.Event"
+  },
+
   members :
   {
     __tree : null,
