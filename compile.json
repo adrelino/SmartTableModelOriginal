@@ -1,4 +1,5 @@
 {
+  "$schema": "https://qooxdoo.org/schema/compile-1-0-0.json",
   "targets": [
     {
       "type": "source",
@@ -26,10 +27,8 @@
       "writeIndexHtmlToRoot": true
     }
   ],
-
   "libraries": [
-    //"/usr/local/lib/node_modules/qxcompiler/node_modules/qooxdoo-sdk/framework",
-    "/home/watchee/.nvm/versions/node/v8.12.0/lib/node_modules/qxcompiler/node_modules/qooxdoo-sdk/framework",
+    "../qooxdoo",
     "."
   ]
 }
