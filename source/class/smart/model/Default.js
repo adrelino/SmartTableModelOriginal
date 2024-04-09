@@ -1005,6 +1005,9 @@ qx.Class.define("smart.model.Default",
       }
 
       var rowArray = this.getRowArray(view);
+      if (!rowArray) {
+        return 0;
+      }
       return rowArray.length;
     },
 
