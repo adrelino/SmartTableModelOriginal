@@ -118,6 +118,11 @@ qx.Class.define("smart.model.Default",
     this.__selectionIndex = -1;
     this.__selectionModel = null;
 
+    /**
+     * Marker that batch-editing is active. Will skip any rendering until committed
+     */
+    this.__batchEditingDepth = 0;
+
     /*
      * We need our own changeView event handler to restore the
      * selection after the view has changed.
@@ -152,6 +157,7 @@ qx.Class.define("smart.model.Default",
     __alternate_backingstore : null,
     __table : null,
     __stack_limit_push_apply : 100000, //100.000 because alternative is buggy
+    __batchEditingDepth : 0,
     
     __computeExactStackLimit: function () {
       //https://2ality.com/2014/04/call-stack-size.html
@@ -210,6 +216,32 @@ qx.Class.define("smart.model.Default",
       table.setResetSelectionOnHeaderTap(false);
     },
 
+
+    isBatchEditing: function() {
+      return this.__batchEditingDepth > 0;
+    },
+
+    startBatchEdit: function() {
+      if (this.__batchEditingDepth == 0)
+        this.__saveSelection()
+      this.__batchEditingDepth++;
+    },
+
+    /**
+     * 
+     * @param {boolean=} force 
+     */
+    commitBatchEdit: function(force) {
+      this.__batchEditingDepth--;
+      if (force) {
+        this.__batchEditingDepth = 0;
+      }
+      if (this.__batchEditingDepth == 0) {
+        this.forceRedraw();
+        this.__restoreSelection();
+      }
+    },
+
     // This gets called when the view is changed or re-applied. It
     // ensures that the _rowArr slot used by the Simple superclass
     // never goes stale: that it always points to the right view. It
@@ -248,7 +280,7 @@ qx.Class.define("smart.model.Default",
 //                   this._rowArr.length + " rows");
 
       // Inform the listeners that the entire table data has changed.
-      if (fireEvent)
+      if (fireEvent && !this.isBatchEditing())
         this.__notifyDataChanged(view);
 
       // NOTE: the selection will be restored by the changeView event handler
@@ -666,6 +698,8 @@ qx.Class.define("smart.model.Default",
     // (push).
     __saveSelection: function(view)
     {
+      if (this.isBatchEditing())
+        return
       if (view === undefined)
       {
         view = this.getView();
@@ -703,6 +737,8 @@ qx.Class.define("smart.model.Default",
     //
     __restoreSelection: function(view)
     {
+      if (this.isBatchEditing())
+        return
       // If there's no indexed selection, there's nothing to restore.
       if (this.__selectedRows == null ||
           ! this.__selectionModel ||
@@ -1700,7 +1736,7 @@ qx.Class.define("smart.model.Default",
         // TBD: also, we might have made a change that didn't affect what is
         // currently visible. But this is subtle because changes to one view
         // (e.g., view zero) can affect other views.
-        if (fireEvent)
+        if (fireEvent && !this.isBatchEditing())
         {
           this.__notifyDataChanged();
         }
@@ -1975,7 +2011,7 @@ qx.Class.define("smart.model.Default",
       // Restore the indexed selection
       this.__restoreSelection();
 
-      if (fireEvent)
+      if (fireEvent && !this.isBatchEditing())
       {
         this.__notifyDataChanged();
       }
@@ -2121,7 +2157,7 @@ qx.Class.define("smart.model.Default",
         }
       }
       
-      if (fireEvent)
+      if (fireEvent && !this.isBatchEditing())
       {
         this.__notifyDataChanged();
       }
@@ -2303,7 +2339,7 @@ qx.Class.define("smart.model.Default",
       }
 
       // If the displayed view was altered, notify listeners.
-      if (fireEvent && this.getView() == view)
+      if (fireEvent && this.getView() == view && !this.isBatchEditing())
       {
         this.__notifyDataChanged(view);
       }
