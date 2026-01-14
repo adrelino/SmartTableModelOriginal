@@ -235,6 +235,8 @@ qx.Class.define("smart.model.Default",
       this.__batchEditingDepth--;
       if (force) {
         this.__batchEditingDepth = 0;
+      } else if (this.__batchEditingDepth < 0) {
+        this.__batchEditingDepth = 0;
       }
       if (this.__batchEditingDepth == 0) {
         this.forceRedraw();
