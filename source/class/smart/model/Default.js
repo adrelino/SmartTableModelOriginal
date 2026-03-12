@@ -122,6 +122,7 @@ qx.Class.define("smart.model.Default",
      * Marker that batch-editing is active. Will skip any rendering until committed
      */
     this.__batchEditingDepth = 0;
+    this.__batchCommitInterval = -1;
 
     /*
      * We need our own changeView event handler to restore the
@@ -158,6 +159,7 @@ qx.Class.define("smart.model.Default",
     __table : null,
     __stack_limit_push_apply : 100000, //100.000 because alternative is buggy
     __batchEditingDepth : 0,
+    __batchCommitInterval : -1,
     
     __computeExactStackLimit: function () {
       //https://2ality.com/2014/04/call-stack-size.html
@@ -225,6 +227,13 @@ qx.Class.define("smart.model.Default",
       if (this.__batchEditingDepth == 0)
         this.__saveSelection()
       this.__batchEditingDepth++;
+      if (this.__batchEditingDepth == 1 && this.__batchCommitInterval < 0) {
+        // batch started. Start a timeout to at least occasionaly refesh during batch
+        this.__batchCommitInterval = setInterval(() => {
+          console.error("Unexpectedly long running table edit batch. Force-redrawing. Number of uncommitted edits: " + this.__batchEditingDepth);
+          this.forceDrawDuringBatch();
+        }, 3000);
+      }
     },
 
     /**
@@ -241,7 +250,17 @@ qx.Class.define("smart.model.Default",
       if (this.__batchEditingDepth == 0) {
         this.forceRedraw();
         this.__restoreSelection();
+        if (this.__batchCommitInterval >= 0) {
+          clearInterval(this.__batchCommitInterval);
+          this.__batchCommitInterval = -1;
+        }
       }
+    },
+
+    forceDrawDuringBatch: function() {
+      if (this.__batchEditingDepth == 0)
+        return; // we are not in batch mode
+      this.forceRedraw();
     },
 
     // This gets called when the view is changed or re-applied. It
