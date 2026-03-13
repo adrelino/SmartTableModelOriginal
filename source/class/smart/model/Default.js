@@ -160,6 +160,7 @@ qx.Class.define("smart.model.Default",
     __stack_limit_push_apply : 100000, //100.000 because alternative is buggy
     __batchEditingDepth : 0,
     __batchCommitInterval : -1,
+    __hasBatchPendingChanges : false,
     
     __computeExactStackLimit: function () {
       //https://2ality.com/2014/04/call-stack-size.html
@@ -248,7 +249,9 @@ qx.Class.define("smart.model.Default",
         this.__batchEditingDepth = 0;
       }
       if (this.__batchEditingDepth == 0) {
-        this.forceRedraw();
+        if (this.__hasBatchPendingChanges)
+          this.forceRedraw();
+
         this.__restoreSelection();
         if (this.__batchCommitInterval >= 0) {
           clearInterval(this.__batchCommitInterval);
@@ -301,7 +304,7 @@ qx.Class.define("smart.model.Default",
 //                   this._rowArr.length + " rows");
 
       // Inform the listeners that the entire table data has changed.
-      if (fireEvent && !this.isBatchEditing())
+      if (fireEvent)
         this.__notifyDataChanged(view);
 
       // NOTE: the selection will be restored by the changeView event handler
@@ -1757,7 +1760,7 @@ qx.Class.define("smart.model.Default",
         // TBD: also, we might have made a change that didn't affect what is
         // currently visible. But this is subtle because changes to one view
         // (e.g., view zero) can affect other views.
-        if (fireEvent && !this.isBatchEditing())
+        if (fireEvent)
         {
           this.__notifyDataChanged();
         }
@@ -2032,7 +2035,7 @@ qx.Class.define("smart.model.Default",
       // Restore the indexed selection
       this.__restoreSelection();
 
-      if (fireEvent && !this.isBatchEditing())
+      if (fireEvent)
       {
         this.__notifyDataChanged();
       }
@@ -2178,7 +2181,7 @@ qx.Class.define("smart.model.Default",
         }
       }
       
-      if (fireEvent && !this.isBatchEditing())
+      if (fireEvent)
       {
         this.__notifyDataChanged();
       }
@@ -2205,7 +2208,7 @@ qx.Class.define("smart.model.Default",
           this.__alternate_backingstore[v] = null;
         }
         this._updateAssociationMaps();
-        this.__notifyDataChanged();
+        this.__notifyDataChanged(undefined, true);
       }
       this.__ID = 1;
     },
@@ -2217,7 +2220,7 @@ qx.Class.define("smart.model.Default",
      */
     forceRedraw: function()
     {
-      this.__notifyDataChanged();
+      this.__notifyDataChanged(undefined, true);
     },
 
     
@@ -2360,7 +2363,7 @@ qx.Class.define("smart.model.Default",
       }
 
       // If the displayed view was altered, notify listeners.
-      if (fireEvent && this.getView() == view && !this.isBatchEditing())
+      if (fireEvent && this.getView() == view)
       {
         this.__notifyDataChanged(view);
       }
@@ -2704,8 +2707,13 @@ qx.Class.define("smart.model.Default",
     // Fire a DATA_CHANGED event notifying listeners that the entire table has
     // changed.
     //
-    __notifyDataChanged: function(view)
+    __notifyDataChanged: function(view, force)
     {
+      if (this.isBatchEditing() && !force) {
+        this.__hasBatchPendingChanges = true;
+        return;
+      }
+      this.__hasBatchPendingChanges = false;
       if (this.hasListener('dataChanged'))
       {
         if (view === undefined)
